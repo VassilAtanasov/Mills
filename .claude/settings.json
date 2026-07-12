@@ -1,4 +1,15 @@
 {
+  "extraKnownMarketplaces": {
+    "ivan-sdlc": {
+      "source": {
+        "source": "github",
+        "repo": "VassilAtanasov/ivan-sdlc"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "ivan@ivan-sdlc": true
+  },
   "permissions": {
     "allow": [
       "Bash(dotnet:*)",

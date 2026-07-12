@@ -38,9 +38,12 @@ React + TypeScript (Vite) in `client/`.
 | Backlog | `gh issue list --label feature --state open` |
 | Board status | `gh project item-list 16 --owner VassilAtanasov` |
 
-### Mills Projects board reference (verified IDs — do not rediscover)
+## Ivan project config
 
-- Project number `16`, project ID `PVT_kwHOANIl2M4BdNfN`, URL https://github.com/users/VassilAtanasov/projects/16
+<!-- Read by every ivan plugin skill (verified IDs — do not rediscover). -->
+- GitHub: VassilAtanasov/Mills
+- Stack: ASP.NET Core (.NET 10) in `server/`, React + TypeScript (Vite) in `client/`
+- Projects board: number `16`, project ID `PVT_kwHOANIl2M4BdNfN`, URL https://github.com/users/VassilAtanasov/projects/16
 - Status field ID `PVTSSF_lAHOANIl2M4BdNfNzhXwmts`; options: Todo `f75ad846`, In Progress `47fc9ee4`, Done `98236657`
 - Add an issue to the board: `gh project item-add 16 --owner VassilAtanasov --url <issue-url> --format json` (returns the item ID)
 - Set status: `gh project item-edit --id <item-id> --project-id PVT_kwHOANIl2M4BdNfN --field-id PVTSSF_lAHOANIl2M4BdNfNzhXwmts --single-select-option-id <option-id>`

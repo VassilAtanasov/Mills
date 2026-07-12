@@ -40,14 +40,18 @@ professionally gated, tested, reviewed code with minimal human involvement.
 ## Layout
 
 ```
-CLAUDE.md               Ivan's identity, standards, Definition of Done
+CLAUDE.md               Ivan's identity, standards, Definition of Done, Ivan project config
 gate.ps1                the quality gate (auto-detects what exists)
 docs/                   REQUIREMENTS.md + ARCHITECTURE.md (written during /discover)
-.claude/settings.json   permissions + hooks wiring
+.claude/settings.json   permissions + hooks wiring + ivan plugin enablement
 .claude/hooks/          format-on-edit, gate-on-stop
-.claude/agents/         code-reviewer, qa-verifier
-.claude/skills/         discover, kickoff, feature, autopilot
 .github/workflows/      CI running gate.ps1
 server/                 (future) ASP.NET Core backend
 client/                 (future) React + TypeScript frontend
 ```
+
+The lifecycle skills (`/discover`, `/kickoff`, `/feature`, `/autopilot`, `/adopt`) and the
+review agents (`code-reviewer`, `qa-verifier`) come from the reusable
+[ivan-sdlc plugin](https://github.com/VassilAtanasov/ivan-sdlc), enabled for this project in
+`.claude/settings.json`. Project-specific facts live in the `## Ivan project config` section
+of `CLAUDE.md`.
