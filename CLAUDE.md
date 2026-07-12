@@ -25,16 +25,17 @@ Mills — autonomous SDLC repository of VassilAtanasov. GitHub: https://github.c
 backlog file in the repo. Requirements live in `docs/REQUIREMENTS.md`, architecture in
 `docs/ARCHITECTURE.md`; both are written collaboratively during `/discover`.
 
-Intended stack (once application code exists): ASP.NET Core (.NET 10) in `server/`,
-React + TypeScript (Vite) in `client/`.
+Stack (decided in `/discover`, see `docs/ARCHITECTURE.md` D-1): React + TypeScript (Vite) SPA in
+`client/` — **no backend**; the rules engine is a pure TS module in `client/src/engine/`. Deployed
+to GitHub Pages at base path `/Mills/`.
 
 ## Commands
 
 | What | Command |
 |---|---|
 | Full quality gate | `powershell -NoProfile -File ./gate.ps1` (or `pwsh -File ./gate.ps1`) |
-| Backend build/test | `dotnet build server/Mills.sln -warnaserror` / `dotnet test server/Mills.sln` |
 | Frontend checks | in `client/`: `npm run typecheck`, `npm run lint`, `npm test -- --run` |
+| Run the app | in `client/`: `npm run dev` → http://localhost:5173/Mills/ |
 | Backlog | `gh issue list --label feature --state open` |
 | Board status | `gh project item-list 16 --owner VassilAtanasov` |
 
@@ -42,7 +43,7 @@ React + TypeScript (Vite) in `client/`.
 
 <!-- Read by every ivan plugin skill (verified IDs — do not rediscover). -->
 - GitHub: VassilAtanasov/Mills
-- Stack: ASP.NET Core (.NET 10) in `server/`, React + TypeScript (Vite) in `client/`
+- Stack: React + TypeScript (Vite) in `client/`; no backend; GitHub Pages deploy
 - Projects board: number `16`, project ID `PVT_kwHOANIl2M4BdNfN`, URL https://github.com/users/VassilAtanasov/projects/16
 - Status field ID `PVTSSF_lAHOANIl2M4BdNfNzhXwmts`; options: Todo `f75ad846`, In Progress `47fc9ee4`, Done `98236657`
 - Add an issue to the board: `gh project item-add 16 --owner VassilAtanasov --url <issue-url> --format json` (returns the item ID)
@@ -50,10 +51,10 @@ React + TypeScript (Vite) in `client/`.
 
 ## Coding standards
 
-- C#: `<Nullable>enable</Nullable>` and `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` in every project. No suppressed warnings without a comment stating the constraint.
 - TypeScript: `strict: true`, no `any` (use `unknown` + narrowing), no `@ts-ignore`/`@ts-expect-error` without a constraint comment.
-- Every behavior change ships with tests in the same branch: xUnit for API behavior, Vitest for frontend logic/components. Test the behavior, not the implementation.
-- Formatting is automated (hooks run `dotnet format` / `prettier`); never spend review effort on style.
+- The rules engine (`client/src/engine/`) never imports React or DOM APIs — it is the single rules implementation; the UI only calls its public API (ARCHITECTURE.md D-2).
+- Every behavior change ships with tests in the same branch: Vitest for engine rules and component interactions. Test the behavior, not the implementation.
+- Formatting is automated (hooks run `prettier`); never spend review effort on style.
 - Small, focused commits with imperative messages. One feature = one branch = one PR.
 
 ## Definition of Done (per feature issue)
