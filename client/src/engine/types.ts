@@ -38,6 +38,9 @@ export interface GameState {
   readonly pendingCapture: Player | null
 }
 
-export type Action = { type: 'place'; point: PointId } | { type: 'capture'; point: PointId }
+export type Action =
+  | { type: 'place'; point: PointId }
+  | { type: 'move'; from: PointId; to: PointId }
+  | { type: 'capture'; point: PointId }
 
 export type ActionResult = { ok: true; state: GameState } | { ok: false; reason: string }
