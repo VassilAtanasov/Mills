@@ -33,7 +33,7 @@ React + TypeScript (Vite) in `client/`.
 | What | Command |
 |---|---|
 | Full quality gate | `powershell -NoProfile -File ./gate.ps1` (or `pwsh -File ./gate.ps1`) |
-| Backend build/test | `dotnet build server/Mill.sln -warnaserror` / `dotnet test server/Mill.sln` |
+| Backend build/test | `dotnet build server/Mills.sln -warnaserror` / `dotnet test server/Mills.sln` |
 | Frontend checks | in `client/`: `npm run typecheck`, `npm run lint`, `npm test -- --run` |
 | Backlog | `gh issue list --label feature --state open` |
 | Board status | `gh project item-list 16 --owner VassilAtanasov` |
