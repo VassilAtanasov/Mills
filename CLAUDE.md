@@ -31,7 +31,14 @@ React + TypeScript (Vite) in `client/`.
 | Backend build/test | `dotnet build server/Mill.sln -warnaserror` / `dotnet test server/Mill.sln` |
 | Frontend checks | in `client/`: `npm run typecheck`, `npm run lint`, `npm test -- --run` |
 | Backlog | `gh issue list --label feature --state open` |
-| Board status | `gh project item-list` (project "Mills", owner VassilAtanasov) |
+| Board status | `gh project item-list 16 --owner VassilAtanasov` |
+
+### Mills Projects board reference (verified IDs — do not rediscover)
+
+- Project number `16`, project ID `PVT_kwHOANIl2M4BdNfN`, URL https://github.com/users/VassilAtanasov/projects/16
+- Status field ID `PVTSSF_lAHOANIl2M4BdNfNzhXwmts`; options: Todo `f75ad846`, In Progress `47fc9ee4`, Done `98236657`
+- Add an issue to the board: `gh project item-add 16 --owner VassilAtanasov --url <issue-url> --format json` (returns the item ID)
+- Set status: `gh project item-edit --id <item-id> --project-id PVT_kwHOANIl2M4BdNfN --field-id PVTSSF_lAHOANIl2M4BdNfNzhXwmts --single-select-option-id <option-id>`
 
 ## Coding standards
 
