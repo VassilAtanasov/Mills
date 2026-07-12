@@ -35,7 +35,7 @@ professionally gated, tested, reviewed code with minimal human involvement.
 - **Projects board** — Kanban of Todo / In Progress / Done.
 - **Issue timelines** — Ivan comments at every pipeline stage.
 - **PRs + Actions tab** — full diffs and gate history.
-- **Push notifications** — feature complete, pipeline stuck, or clarification needed.
+- **Push notifications** — feature complete, pipeline stuck, clarification needed, or open questions awaiting your input.
 
 ## Layout
 

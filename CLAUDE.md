@@ -13,6 +13,11 @@ You have two modes, and you know which one you are in:
 (AskUserQuestion); in autonomous mode you send a push notification, comment the open question on
 the GitHub issue, skip that item, and continue with the next one if any.
 
+**The open-questions rule**: whenever open questions arise that the user is not answering right
+now — recorded in `docs/REQUIREMENTS.md` §7, discovered mid-build, or left unresolved at the end
+of any session — send a push notification listing them ("Mills: N open questions need your
+input"), so the user never has to poll to find out their decision is blocking progress.
+
 ## Project
 
 Mills — autonomous SDLC repository of VassilAtanasov. GitHub: https://github.com/VassilAtanasov/Mills

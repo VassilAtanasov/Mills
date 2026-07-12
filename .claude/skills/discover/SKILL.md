@@ -43,6 +43,14 @@ Goal: recorded, justified technical decisions for the .NET + React/TS stack.
 - Fill ARCHITECTURE.md: overview, layout, key decisions (D-N entries with the why), cross-cutting
   conventions build-mode Ivan must follow.
 
+## Open questions
+
+Questions the user defers ("let me think about it", session ends mid-pass) go into
+REQUIREMENTS.md §7 immediately — nothing unresolved may live only in chat. Whenever the session
+pauses or ends with §7 non-empty, send a push notification: "Mills: N open questions from
+discovery need your input" with the questions listed, so the user knows discovery is waiting on
+them without polling.
+
 ## Exit
 
 Done when: REQUIREMENTS.md has no unfilled sections and §7 (Open questions) is empty, and
