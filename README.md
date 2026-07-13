@@ -47,9 +47,8 @@ gate.ps1                the quality gate (auto-detects what exists)
 docs/                   REQUIREMENTS.md + ARCHITECTURE.md (written during /discover)
 .claude/settings.json   permissions + hooks wiring + ivan plugin enablement
 .claude/hooks/          format-on-edit, gate-on-stop
-.github/workflows/      CI running gate.ps1
-server/                 (future) ASP.NET Core backend
-client/                 (future) React + TypeScript frontend
+.github/workflows/      ci.yml (the gate, on PRs and pushes to main) + deploy.yml (GitHub Pages, on push to main)
+client/                 React + TypeScript (Vite) app — the game itself; no backend
 ```
 
 The lifecycle skills (`/discover`, `/kickoff`, `/feature`, `/autopilot`, `/adopt`) and the
