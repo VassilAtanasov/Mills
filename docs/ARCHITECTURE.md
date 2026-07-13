@@ -44,6 +44,8 @@ client/
     ai/            # computer opponent: pure TS, consumes ONLY the engine public API
       ai.ts        #   chooseAction(state, rng): Action — 1-ply tactical heuristic (D-10)
       ai.test.ts   #   behavior tests against constructed positions (FR-19)
+    audio/         # sound: pure TS, Web Audio synthesis, zero React/DOM imports (D-12)
+      audio.ts     #   playPlace/playMill/playCapture/playWin/playDraw/setMuted (FR-21)
     components/    # React components (Board, Point, StatusBar, GameOverDialog…)
     state/         # useReducer glue between UI events and engine calls
     styles/        # theme.css — design tokens (wood palette, shadows, motion timings)
@@ -113,6 +115,16 @@ gate.ps1           # repo-wide quality gate (auto-detects client/)
   dispatch in the reducer glue), NOT a sleep inside the AI module — `chooseAction` stays a pure
   synchronous function.
 
+- **D-12: Sound synthesized at runtime via the Web Audio API; no bundled audio files.** Considered:
+  bundled short `.mp3`/`.wav` assets. Chosen (2026-07-13) because: it keeps the zero-asset,
+  zero-network-fetch static-site constraint (D-6) intact for audio the same way it already applies
+  to visuals — a handful of `OscillatorNode`/`GainNode` envelopes cover placement, mill, capture,
+  and win/draw cues without adding binary assets to the repo or build output. A small `src/audio/`
+  module owns tone definitions; it is triggered by UI state transitions, never by the engine or AI
+  (same layering rule as motion — see FR-14/D-7). A mute toggle (FR-21) gates all playback behind a
+  single boolean in UI state; muting suspends/gains-to-zero rather than tearing down the
+  `AudioContext`, so unmuting is instant.
+
 ## 5. Cross-cutting conventions
 
 - **Engine API shape**: `createGame(): GameState`; `getLegalActions(state): Action[]`;
@@ -163,3 +175,8 @@ gate.ps1           # repo-wide quality gate (auto-detects client/)
   cosmetic only — game state is correct and playable with all animation removed.
 - **Win moment.** On game end, highlight the deciding state, de-emphasize the board, and present a
   result modal (outcome + reason from the engine, plus rematch). No confetti/particle effects.
+- **Sound is UI-layer-triggered, engine/AI stay silent.** `src/audio/` exposes a small imperative
+  API (e.g. `playPlace()`, `playMill()`, `playCapture()`, `playWin()`, `playDraw()`, `setMuted()`);
+  it is called from the same reducer glue that drives motion (`src/state/`), never imported by
+  `src/engine/` or `src/ai/`. The mute toggle lives beside the mode control in the status bar,
+  keyboard-operable, with a visible on/off icon state (accessibility baseline above).
