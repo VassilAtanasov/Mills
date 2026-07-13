@@ -17,7 +17,7 @@ export type UiAction =
   | { type: 'AI_ACTION'; action: Action }
 
 export function createInitialUiState(): UiState {
-  return { game: createGame(), selected: null, error: null, mode: 'hotseat' }
+  return { game: createGame(), selected: null, error: null, mode: 'vs-computer' }
 }
 
 export function gameReducer(state: UiState, action: UiAction): UiState {
