@@ -57,14 +57,39 @@ describe('ResultModal', () => {
     expect(onDismiss).toHaveBeenCalledTimes(1)
   })
 
-  it('calls onDismiss when Escape is pressed anywhere in the dialog', () => {
+  it('moves focus into the dialog as soon as it mounts, so Escape is reachable without an explicit Tab', () => {
+    const result: GameResult = { type: 'draw', reason: 'Draw — 50 moves without a mill or capture' }
+    render(<ResultModal result={result} onRematch={() => {}} onDismiss={() => {}} />)
+
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: /dismiss/i }))
+  })
+
+  it('calls onDismiss when Escape is pressed from wherever focus landed on mount', () => {
     const onDismiss = vi.fn()
     const result: GameResult = { type: 'draw', reason: 'Draw — 50 moves without a mill or capture' }
     render(<ResultModal result={result} onRematch={() => {}} onDismiss={onDismiss} />)
 
-    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    // Do not target the dialog element directly: fire on whatever the browser's real
+    // focus-follows-mount behavior put focus on, to catch event-scoping regressions.
+    if (!document.activeElement) throw new Error('expected an element to have focus')
+    fireEvent.keyDown(document.activeElement, { key: 'Escape' })
 
     expect(onDismiss).toHaveBeenCalledTimes(1)
+  })
+
+  it('traps Tab focus between dismiss and rematch, wrapping in both directions', () => {
+    const result: GameResult = { type: 'draw', reason: 'Draw — 50 moves without a mill or capture' }
+    render(<ResultModal result={result} onRematch={() => {}} onDismiss={() => {}} />)
+
+    const dismiss = screen.getByRole('button', { name: /dismiss/i })
+    const rematch = screen.getByRole('button', { name: /rematch/i })
+
+    rematch.focus()
+    fireEvent.keyDown(rematch, { key: 'Tab' })
+    expect(document.activeElement).toBe(dismiss)
+
+    fireEvent.keyDown(dismiss, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(rematch)
   })
 
   it('keeps dismiss and rematch as separate, independently keyboard-reachable controls', () => {

@@ -33,7 +33,12 @@ const EMPTY_SET: ReadonlySet<PointId> = new Set()
 function pointLabel(
   point: PointId,
   occupant: 'white' | 'black' | null,
-  { selected, legalTarget, capturable, inMill }: {
+  {
+    selected,
+    legalTarget,
+    capturable,
+    inMill,
+  }: {
     readonly selected: boolean
     readonly legalTarget: boolean
     readonly capturable: boolean
@@ -132,7 +137,7 @@ export function Board({
           const isSelected = selected === point
           const isLegalTarget = legalTargets.has(point)
           const isCapturable = capturable.has(point)
-          const handleActivate = onPointClick ? () => onPointClick(point) : undefined
+          const handleActivate = onPointClick && !isOver ? () => onPointClick(point) : undefined
           return (
             <g
               key={point}
@@ -144,7 +149,8 @@ export function Board({
               data-capturable={isCapturable}
               data-in-mill={inMill}
               role="button"
-              tabIndex={0}
+              tabIndex={isOver ? -1 : 0}
+              aria-disabled={isOver}
               aria-label={pointLabel(point, occupant, {
                 selected: isSelected,
                 legalTarget: isLegalTarget,

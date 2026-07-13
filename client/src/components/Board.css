@@ -40,10 +40,12 @@
   outline: none;
 }
 
-.board-point:focus-visible .point-hit-area {
-  stroke: var(--highlight-selected);
-  stroke-width: 3;
-  fill: rgba(224, 178, 60, 0.18);
+/* Outline on the group itself (not the hit-area's stroke) so the focus ring
+   can never be overridden by the data-driven capturable/in-mill stroke rules
+   below, which share the same specificity. */
+.board-point:focus-visible {
+  outline: 3px solid var(--highlight-selected);
+  outline-offset: 2px;
 }
 
 .piece {
