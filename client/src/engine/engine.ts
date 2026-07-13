@@ -37,6 +37,21 @@ function reject(reason: string): ActionResult {
   return { ok: false, reason }
 }
 
+function resolvePieceLanded(
+  state: GameState,
+  newBoard: Board,
+  player: Player,
+  landedPoint: PointId,
+  always: Partial<GameState>,
+  onNoMill: Partial<GameState>,
+): ActionResult {
+  const formedMills = millsThrough(newBoard, landedPoint, player)
+  if (formedMills.length > 0) {
+    return { ok: true, state: { ...state, board: newBoard, ...always, pendingCapture: player } }
+  }
+  return { ok: true, state: { ...state, board: newBoard, ...always, ...onNoMill } }
+}
+
 function nextPhaseAfterTurn(piecesInHand: Readonly<Record<Player, number>>): Phase {
   return piecesInHand.white === 0 && piecesInHand.black === 0 ? 'moving' : 'placing'
 }
@@ -144,29 +159,14 @@ function applyPlace(state: GameState, point: PointId): ActionResult {
     [player]: state.piecesInHand[player] - 1,
   }
 
-  const formedMills = millsThrough(newBoard, point, player)
-  if (formedMills.length > 0) {
-    return {
-      ok: true,
-      state: {
-        ...state,
-        board: newBoard,
-        piecesInHand: newPiecesInHand,
-        pendingCapture: player,
-      },
-    }
-  }
-
-  return {
-    ok: true,
-    state: {
-      ...state,
-      board: newBoard,
-      piecesInHand: newPiecesInHand,
-      currentPlayer: opponentOf(player),
-      phase: nextPhaseAfterTurn(newPiecesInHand),
-    },
-  }
+  return resolvePieceLanded(
+    state,
+    newBoard,
+    player,
+    point,
+    { piecesInHand: newPiecesInHand },
+    { currentPlayer: opponentOf(player), phase: nextPhaseAfterTurn(newPiecesInHand) },
+  )
 }
 
 function applyMove(state: GameState, from: PointId, to: PointId): ActionResult {
@@ -189,26 +189,7 @@ function applyMove(state: GameState, from: PointId, to: PointId): ActionResult {
 
   const newBoard: Board = { ...state.board, [from]: null, [to]: player }
 
-  const formedMills = millsThrough(newBoard, to, player)
-  if (formedMills.length > 0) {
-    return {
-      ok: true,
-      state: {
-        ...state,
-        board: newBoard,
-        pendingCapture: player,
-      },
-    }
-  }
-
-  return {
-    ok: true,
-    state: {
-      ...state,
-      board: newBoard,
-      currentPlayer: opponentOf(player),
-    },
-  }
+  return resolvePieceLanded(state, newBoard, player, to, {}, { currentPlayer: opponentOf(player) })
 }
 
 export function applyAction(state: GameState, action: Action): ActionResult {
