@@ -36,6 +36,16 @@
   cursor: pointer;
 }
 
+.board-point:focus {
+  outline: none;
+}
+
+.board-point:focus-visible .point-hit-area {
+  stroke: var(--highlight-selected);
+  stroke-width: 3;
+  fill: rgba(224, 178, 60, 0.18);
+}
+
 .piece {
   filter: drop-shadow(var(--shadow-piece));
   transform-box: fill-box;

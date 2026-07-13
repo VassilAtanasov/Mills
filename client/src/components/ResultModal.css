@@ -9,6 +9,7 @@
 }
 
 .result-modal {
+  position: relative;
   background: var(--panel-background);
   color: var(--panel-text);
   border-radius: var(--radius-lg);
@@ -20,6 +21,32 @@
   gap: 1.25rem;
   max-width: 90vw;
   text-align: center;
+}
+
+.result-modal-dismiss {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  line-height: 1;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--panel-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.result-modal-dismiss:hover {
+  color: var(--panel-text);
+}
+
+.result-modal-dismiss:focus-visible,
+.result-modal-rematch:focus-visible {
+  outline: 3px solid var(--highlight-selected);
+  outline-offset: 2px;
 }
 
 .result-modal-outcome {
