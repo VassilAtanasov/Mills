@@ -20,6 +20,36 @@
   fill: var(--wood-line-soft);
 }
 
+.point-hit-area {
+  fill: transparent;
+}
+
+.board-point {
+  cursor: pointer;
+}
+
 .piece {
   filter: drop-shadow(var(--shadow-piece));
+}
+
+.board-point[data-legal-target='true'] .point-marker {
+  fill: var(--highlight-legal-target);
+}
+
+.board-point[data-selected='true'] .point-hit-area {
+  stroke: var(--highlight-selected);
+  stroke-width: 3;
+  fill: none;
+}
+
+.board-point[data-capturable='true'] .point-hit-area {
+  stroke: var(--highlight-capturable);
+  stroke-width: 3;
+  fill: none;
+}
+
+.board-point[data-in-mill='true'] .point-hit-area {
+  stroke: var(--highlight-in-mill);
+  stroke-width: 2;
+  fill: none;
 }

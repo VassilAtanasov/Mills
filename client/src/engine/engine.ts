@@ -30,7 +30,7 @@ function emptyBoard(): Board {
   return board
 }
 
-function isInMill(board: Board, point: PointId, player: Player): boolean {
+export function isInMill(board: Board, point: PointId, player: Player): boolean {
   return MILLS.some(
     (line) => line.includes(point) && line.every((linePoint) => board[linePoint] === player),
   )
