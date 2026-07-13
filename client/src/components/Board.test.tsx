@@ -1,5 +1,5 @@
-import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 import { createGame } from '../engine/engine'
 import type { GameState } from '../engine/types'
 import { Board } from './Board'
@@ -53,5 +53,49 @@ describe('Board', () => {
     const blackPiece = container.querySelector('[data-point="a4"] .piece')
     expect(whitePiece?.querySelector('circle[fill="none"]')).not.toBeNull() // ring mark
     expect(blackPiece?.querySelectorAll('line')).toHaveLength(2) // cross mark
+  })
+
+  it('marks legal-target, selected, and capturable points from data-driven props', () => {
+    const state = createGame()
+    const { container } = render(
+      <Board
+        state={state}
+        selected="a1"
+        legalTargets={new Set(['a4', 'd1'])}
+        capturable={new Set(['g7'])}
+      />,
+    )
+
+    expect(container.querySelector('[data-point="a1"][data-selected="true"]')).not.toBeNull()
+    expect(container.querySelector('[data-point="a4"][data-legal-target="true"]')).not.toBeNull()
+    expect(container.querySelector('[data-point="d1"][data-legal-target="true"]')).not.toBeNull()
+    expect(container.querySelector('[data-point="g7"][data-capturable="true"]')).not.toBeNull()
+    expect(container.querySelector('[data-point="a7"][data-legal-target="true"]')).toBeNull()
+  })
+
+  it('marks a point in-mill only when its board state completes a mill line', () => {
+    const state: GameState = {
+      ...createGame(),
+      board: { ...createGame().board, a1: 'white', a4: 'white', a7: 'white', d1: 'black' },
+    }
+    const { container } = render(<Board state={state} />)
+
+    expect(container.querySelector('[data-point="a1"][data-in-mill="true"]')).not.toBeNull()
+    expect(container.querySelector('[data-point="a4"][data-in-mill="true"]')).not.toBeNull()
+    expect(container.querySelector('[data-point="a7"][data-in-mill="true"]')).not.toBeNull()
+    expect(container.querySelector('[data-point="d1"][data-in-mill="false"]')).not.toBeNull()
+  })
+
+  it('invokes onPointClick with the clicked point id', () => {
+    const onPointClick = vi.fn()
+    const state = createGame()
+    const { container } = render(<Board state={state} onPointClick={onPointClick} />)
+
+    const point = container.querySelector('[data-point="d1"]')
+    if (!point) throw new Error('expected point d1 to render')
+    fireEvent.click(point)
+
+    expect(onPointClick).toHaveBeenCalledTimes(1)
+    expect(onPointClick).toHaveBeenCalledWith('d1')
   })
 })

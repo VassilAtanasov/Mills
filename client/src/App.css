@@ -14,3 +14,13 @@
   color: var(--piece-white-base);
   margin: 0;
 }
+
+.app-error {
+  background: var(--panel-background);
+  color: var(--highlight-capturable);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-panel);
+  padding: 0.5rem 1rem;
+  margin: 0;
+  font-weight: 600;
+}

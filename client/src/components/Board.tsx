@@ -1,4 +1,5 @@
 import { ADJACENCY, POINTS } from '../engine/board'
+import { isInMill } from '../engine/engine'
 import type { GameState, PointId } from '../engine/types'
 import './Board.css'
 import { layoutFor, VIEWBOX_SIZE } from './boardLayout'
@@ -6,6 +7,10 @@ import { Piece } from './Piece'
 
 interface BoardProps {
   readonly state: GameState
+  readonly selected?: PointId | null
+  readonly legalTargets?: ReadonlySet<PointId>
+  readonly capturable?: ReadonlySet<PointId>
+  readonly onPointClick?: (point: PointId) => void
 }
 
 function boardEdges(): readonly (readonly [PointId, PointId])[] {
@@ -22,7 +27,15 @@ function boardEdges(): readonly (readonly [PointId, PointId])[] {
 
 const EDGES = boardEdges()
 
-export function Board({ state }: BoardProps) {
+const EMPTY_SET: ReadonlySet<PointId> = new Set()
+
+export function Board({
+  state,
+  selected = null,
+  legalTargets = EMPTY_SET,
+  capturable = EMPTY_SET,
+  onPointClick,
+}: BoardProps) {
   return (
     <svg
       className="board"
@@ -92,8 +105,20 @@ export function Board({ state }: BoardProps) {
         {POINTS.map((point) => {
           const { x, y } = layoutFor(point)
           const occupant = state.board[point]
+          const inMill = occupant !== null && isInMill(state.board, point, occupant)
           return (
-            <g key={point} data-point={point} data-state={occupant ?? 'empty'}>
+            <g
+              key={point}
+              className="board-point"
+              data-point={point}
+              data-state={occupant ?? 'empty'}
+              data-selected={selected === point}
+              data-legal-target={legalTargets.has(point)}
+              data-capturable={capturable.has(point)}
+              data-in-mill={inMill}
+              onClick={onPointClick ? () => onPointClick(point) : undefined}
+            >
+              <circle className="point-hit-area" cx={x} cy={y} r={26} />
               <circle className="point-marker" cx={x} cy={y} r={6} />
               {occupant ? <Piece player={occupant} cx={x} cy={y} /> : null}
             </g>

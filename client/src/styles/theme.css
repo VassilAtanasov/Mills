@@ -26,6 +26,12 @@
   --piece-black-shadow: #0f0a06;
   --piece-black-mark: rgba(244, 234, 217, 0.65);
 
+  /* Interaction highlights */
+  --highlight-legal-target: #7fb069;
+  --highlight-selected: #e0b23c;
+  --highlight-capturable: #c0392b;
+  --highlight-in-mill: #4c8fd4;
+
   /* Shadows */
   --shadow-board: 0 20px 45px rgba(0, 0, 0, 0.45);
   --shadow-piece: 0 3px 4px rgba(0, 0, 0, 0.45);
