@@ -30,12 +30,18 @@ export type Phase = 'placing' | 'moving'
 
 export type Board = Readonly<Record<PointId, Player | null>>
 
+export type GameResult =
+  { type: 'win'; winner: Player; reason: string } | { type: 'draw'; reason: string }
+
 export interface GameState {
   readonly board: Board
   readonly phase: Phase
   readonly currentPlayer: Player
   readonly piecesInHand: Readonly<Record<Player, number>>
   readonly pendingCapture: Player | null
+  readonly movesWithoutProgress: number
+  readonly positionCounts: Readonly<Record<string, number>>
+  readonly result: GameResult | null
 }
 
 export type Action =

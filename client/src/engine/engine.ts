@@ -1,8 +1,24 @@
 import { ADJACENCY, MILLS, POINTS } from './board'
-import type { Action, ActionResult, Board, GameState, Phase, Player, PointId } from './types'
+import type {
+  Action,
+  ActionResult,
+  Board,
+  GameResult,
+  GameState,
+  Phase,
+  Player,
+  PointId,
+} from './types'
+
+const MOVES_WITHOUT_PROGRESS_LIMIT = 50
+const REPETITIONS_FOR_DRAW = 3
 
 function opponentOf(player: Player): Player {
   return player === 'white' ? 'black' : 'white'
+}
+
+function capitalize(player: Player): string {
+  return player.charAt(0).toUpperCase() + player.slice(1)
 }
 
 function emptyBoard(): Board {
@@ -37,19 +53,93 @@ function reject(reason: string): ActionResult {
   return { ok: false, reason }
 }
 
-function resolvePieceLanded(
+function landPiece(
   state: GameState,
   newBoard: Board,
   player: Player,
   landedPoint: PointId,
   always: Partial<GameState>,
   onNoMill: Partial<GameState>,
-): ActionResult {
+): { state: GameState; millFormed: boolean } {
   const formedMills = millsThrough(newBoard, landedPoint, player)
   if (formedMills.length > 0) {
-    return { ok: true, state: { ...state, board: newBoard, ...always, pendingCapture: player } }
+    return {
+      state: { ...state, board: newBoard, ...always, pendingCapture: player },
+      millFormed: true,
+    }
   }
-  return { ok: true, state: { ...state, board: newBoard, ...always, ...onNoMill } }
+  return { state: { ...state, board: newBoard, ...always, ...onNoMill }, millFormed: false }
+}
+
+function positionKey(board: Board, currentPlayer: Player): string {
+  return POINTS.map((point) => `${point}:${board[point] ?? '-'}`).join(',') + `|${currentPlayer}`
+}
+
+function checkBelowThree(board: Board, phase: Phase): GameResult | null {
+  if (phase !== 'moving') {
+    return null
+  }
+  for (const player of ['white', 'black'] as const) {
+    if (pointsOwnedBy(board, player).length < 3) {
+      const winner = opponentOf(player)
+      return {
+        type: 'win',
+        winner,
+        reason: `${capitalize(winner)} wins — ${capitalize(player)} has fewer than three pieces`,
+      }
+    }
+  }
+  return null
+}
+
+function checkNoLegalMoves(state: GameState): GameResult | null {
+  if (getLegalActions(state).length > 0) {
+    return null
+  }
+  const loser = state.currentPlayer
+  const winner = opponentOf(loser)
+  return {
+    type: 'win',
+    winner,
+    reason: `${capitalize(winner)} wins — ${capitalize(loser)} has no legal moves`,
+  }
+}
+
+function finalizeTurn(state: GameState): GameState {
+  const belowThree = checkBelowThree(state.board, state.phase)
+  if (belowThree) {
+    return { ...state, result: belowThree }
+  }
+
+  let nextState = state
+  if (state.phase === 'moving') {
+    if (state.movesWithoutProgress >= MOVES_WITHOUT_PROGRESS_LIMIT) {
+      return {
+        ...state,
+        result: {
+          type: 'draw',
+          reason: `Draw — ${MOVES_WITHOUT_PROGRESS_LIMIT} moves without a mill or capture`,
+        },
+      }
+    }
+
+    const key = positionKey(state.board, state.currentPlayer)
+    const count = (state.positionCounts[key] ?? 0) + 1
+    nextState = { ...state, positionCounts: { ...state.positionCounts, [key]: count } }
+    if (count >= REPETITIONS_FOR_DRAW) {
+      return {
+        ...nextState,
+        result: { type: 'draw', reason: 'Draw — the same position has occurred three times' },
+      }
+    }
+  }
+
+  const noLegalMoves = checkNoLegalMoves(nextState)
+  if (noLegalMoves) {
+    return { ...nextState, result: noLegalMoves }
+  }
+
+  return nextState
 }
 
 function nextPhaseAfterTurn(piecesInHand: Readonly<Record<Player, number>>): Phase {
@@ -72,10 +162,17 @@ export function createGame(): GameState {
     currentPlayer: 'white',
     piecesInHand: { white: 9, black: 9 },
     pendingCapture: null,
+    movesWithoutProgress: 0,
+    positionCounts: {},
+    result: null,
   }
 }
 
 export function getLegalActions(state: GameState): Action[] {
+  if (state.result) {
+    return []
+  }
+
   if (state.pendingCapture) {
     const capturer = state.pendingCapture
     const opponent = opponentOf(capturer)
@@ -134,13 +231,14 @@ function applyCapture(state: GameState, point: PointId): ActionResult {
 
   return {
     ok: true,
-    state: {
+    state: finalizeTurn({
       ...state,
       board: newBoard,
       pendingCapture: null,
       currentPlayer: nextPlayer,
       phase: nextPhaseAfterTurn(state.piecesInHand),
-    },
+      movesWithoutProgress: 0,
+    }),
   }
 }
 
@@ -159,7 +257,7 @@ function applyPlace(state: GameState, point: PointId): ActionResult {
     [player]: state.piecesInHand[player] - 1,
   }
 
-  return resolvePieceLanded(
+  const landed = landPiece(
     state,
     newBoard,
     player,
@@ -167,6 +265,7 @@ function applyPlace(state: GameState, point: PointId): ActionResult {
     { piecesInHand: newPiecesInHand },
     { currentPlayer: opponentOf(player), phase: nextPhaseAfterTurn(newPiecesInHand) },
   )
+  return { ok: true, state: landed.millFormed ? landed.state : finalizeTurn(landed.state) }
 }
 
 function applyMove(state: GameState, from: PointId, to: PointId): ActionResult {
@@ -189,10 +288,22 @@ function applyMove(state: GameState, from: PointId, to: PointId): ActionResult {
 
   const newBoard: Board = { ...state.board, [from]: null, [to]: player }
 
-  return resolvePieceLanded(state, newBoard, player, to, {}, { currentPlayer: opponentOf(player) })
+  const landed = landPiece(
+    state,
+    newBoard,
+    player,
+    to,
+    {},
+    { currentPlayer: opponentOf(player), movesWithoutProgress: state.movesWithoutProgress + 1 },
+  )
+  return { ok: true, state: landed.millFormed ? landed.state : finalizeTurn(landed.state) }
 }
 
 export function applyAction(state: GameState, action: Action): ActionResult {
+  if (state.result) {
+    return reject('the game is over')
+  }
+
   if (state.pendingCapture) {
     if (action.type !== 'capture') {
       return reject('a capture is required before the turn can end')
