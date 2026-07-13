@@ -1,4 +1,4 @@
-import { MILLS, POINTS } from './board'
+import { ADJACENCY, MILLS, POINTS } from './board'
 import type { Action, ActionResult, Board, GameState, Phase, Player, PointId } from './types'
 
 function opponentOf(player: Player): Player {
@@ -37,8 +37,32 @@ function reject(reason: string): ActionResult {
   return { ok: false, reason }
 }
 
+function resolvePieceLanded(
+  state: GameState,
+  newBoard: Board,
+  player: Player,
+  landedPoint: PointId,
+  always: Partial<GameState>,
+  onNoMill: Partial<GameState>,
+): ActionResult {
+  const formedMills = millsThrough(newBoard, landedPoint, player)
+  if (formedMills.length > 0) {
+    return { ok: true, state: { ...state, board: newBoard, ...always, pendingCapture: player } }
+  }
+  return { ok: true, state: { ...state, board: newBoard, ...always, ...onNoMill } }
+}
+
 function nextPhaseAfterTurn(piecesInHand: Readonly<Record<Player, number>>): Phase {
   return piecesInHand.white === 0 && piecesInHand.black === 0 ? 'moving' : 'placing'
+}
+
+function isFlying(board: Board, player: Player): boolean {
+  return pointsOwnedBy(board, player).length === 3
+}
+
+function moveDestinations(board: Board, from: PointId, flying: boolean): PointId[] {
+  const candidates = flying ? POINTS : ADJACENCY[from]
+  return candidates.filter((point) => board[point] === null)
 }
 
 export function createGame(): GameState {
@@ -70,7 +94,16 @@ export function getLegalActions(state: GameState): Action[] {
     }))
   }
 
-  return []
+  const player = state.currentPlayer
+  const ownPoints = pointsOwnedBy(state.board, player)
+  const flying = isFlying(state.board, player)
+  const actions: Action[] = []
+  for (const from of ownPoints) {
+    for (const to of moveDestinations(state.board, from, flying)) {
+      actions.push({ type: 'move', from, to })
+    }
+  }
+  return actions
 }
 
 function applyCapture(state: GameState, point: PointId): ActionResult {
@@ -126,29 +159,37 @@ function applyPlace(state: GameState, point: PointId): ActionResult {
     [player]: state.piecesInHand[player] - 1,
   }
 
-  const formedMills = millsThrough(newBoard, point, player)
-  if (formedMills.length > 0) {
-    return {
-      ok: true,
-      state: {
-        ...state,
-        board: newBoard,
-        piecesInHand: newPiecesInHand,
-        pendingCapture: player,
-      },
-    }
+  return resolvePieceLanded(
+    state,
+    newBoard,
+    player,
+    point,
+    { piecesInHand: newPiecesInHand },
+    { currentPlayer: opponentOf(player), phase: nextPhaseAfterTurn(newPiecesInHand) },
+  )
+}
+
+function applyMove(state: GameState, from: PointId, to: PointId): ActionResult {
+  if (state.phase !== 'moving') {
+    return reject('not in the moving phase')
   }
 
-  return {
-    ok: true,
-    state: {
-      ...state,
-      board: newBoard,
-      piecesInHand: newPiecesInHand,
-      currentPlayer: opponentOf(player),
-      phase: nextPhaseAfterTurn(newPiecesInHand),
-    },
+  const player = state.currentPlayer
+  if (state.board[from] !== player) {
+    return reject(`point ${from} does not hold your piece`)
   }
+  if (state.board[to] !== null) {
+    return reject(`point ${to} is occupied`)
+  }
+
+  const flying = isFlying(state.board, player)
+  if (!flying && !ADJACENCY[from].includes(to)) {
+    return reject(`point ${to} is not adjacent to ${from}`)
+  }
+
+  const newBoard: Board = { ...state.board, [from]: null, [to]: player }
+
+  return resolvePieceLanded(state, newBoard, player, to, {}, { currentPlayer: opponentOf(player) })
 }
 
 export function applyAction(state: GameState, action: Action): ActionResult {
@@ -161,6 +202,10 @@ export function applyAction(state: GameState, action: Action): ActionResult {
 
   if (action.type === 'capture') {
     return reject('no capture is pending')
+  }
+
+  if (action.type === 'move') {
+    return applyMove(state, action.from, action.to)
   }
 
   return applyPlace(state, action.point)
