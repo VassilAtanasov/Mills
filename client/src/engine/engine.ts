@@ -134,9 +134,11 @@ function finalizeTurn(state: GameState): GameState {
     }
   }
 
-  const noLegalMoves = checkNoLegalMoves(nextState)
-  if (noLegalMoves) {
-    return { ...nextState, result: noLegalMoves }
+  if (nextState.phase === 'moving') {
+    const noLegalMoves = checkNoLegalMoves(nextState)
+    if (noLegalMoves) {
+      return { ...nextState, result: noLegalMoves }
+    }
   }
 
   return nextState
