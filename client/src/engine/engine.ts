@@ -12,6 +12,7 @@ import type {
 
 const MOVES_WITHOUT_PROGRESS_LIMIT = 50
 const REPETITIONS_FOR_DRAW = 3
+export const PIECES_PER_PLAYER = 9
 
 function opponentOf(player: Player): Player {
   return player === 'white' ? 'black' : 'white'
@@ -162,7 +163,7 @@ export function createGame(): GameState {
     board: emptyBoard(),
     phase: 'placing',
     currentPlayer: 'white',
-    piecesInHand: { white: 9, black: 9 },
+    piecesInHand: { white: PIECES_PER_PLAYER, black: PIECES_PER_PLAYER },
     pendingCapture: null,
     movesWithoutProgress: 0,
     positionCounts: {},
