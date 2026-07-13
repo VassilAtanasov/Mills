@@ -64,19 +64,19 @@ export function Board({ state }: BoardProps) {
       </defs>
 
       <rect
+        className="board-panel"
         x={0}
         y={0}
         width={VIEWBOX_SIZE}
         height={VIEWBOX_SIZE}
-        rx={24}
         fill="url(#board-wood-gradient)"
       />
       <rect
+        className="board-panel"
         x={0}
         y={0}
         width={VIEWBOX_SIZE}
         height={VIEWBOX_SIZE}
-        rx={24}
         filter="url(#wood-noise)"
       />
 

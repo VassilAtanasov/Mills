@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { createGame } from '../engine/engine'
 import type { GameState } from '../engine/types'
@@ -21,10 +21,15 @@ describe('StatusBar', () => {
       piecesInHand: { white: 0, black: 0 },
       board: { ...createGame().board, a1: 'white', a4: 'white', a7: 'white', d1: 'black' },
     }
-    render(<StatusBar state={state} />)
+    const { container } = render(<StatusBar state={state} />)
     expect(screen.getByText(/black to move/i)).toBeInTheDocument()
     expect(screen.getByText(/phase: moving/i)).toBeInTheDocument()
-    expect(screen.getByText(/captured: 6/i)).toBeInTheDocument() // black: 9 placed - 1 on board
+
+    const whiteRow = container.querySelector('[data-player="white"]')
+    const blackRow = container.querySelector('[data-player="black"]')
+    if (!whiteRow || !blackRow) throw new Error('expected both player rows to render')
+    expect(within(whiteRow as HTMLElement).getByText(/captured: 6/i)).toBeInTheDocument() // 9 placed - 3 on board
+    expect(within(blackRow as HTMLElement).getByText(/captured: 8/i)).toBeInTheDocument() // 9 placed - 1 on board
   })
 
   it('shows a capture prompt when a capture is pending', () => {

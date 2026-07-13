@@ -1,4 +1,5 @@
 import { POINTS } from '../engine/board'
+import { PIECES_PER_PLAYER } from '../engine/engine'
 import type { GameState, Player } from '../engine/types'
 import './StatusBar.css'
 
@@ -34,7 +35,7 @@ export function StatusBar({ state }: StatusBarProps) {
       <dl className="status-players">
         {PLAYERS.map((player) => {
           const onBoard = piecesOnBoard(state, player)
-          const placed = 9 - state.piecesInHand[player]
+          const placed = PIECES_PER_PLAYER - state.piecesInHand[player]
           const captured = placed - onBoard
           return (
             <div className="status-player" key={player} data-player={player}>

@@ -6,6 +6,10 @@
   filter: drop-shadow(var(--shadow-board));
 }
 
+.board-panel {
+  rx: var(--radius-lg);
+}
+
 .board-lines line {
   stroke: var(--wood-line);
   stroke-width: 3;
