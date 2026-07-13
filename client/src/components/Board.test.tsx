@@ -119,4 +119,36 @@ describe('Board', () => {
     expect(svg?.getAttribute('data-game-over')).toBe('false')
     expect(svg?.classList.contains('board-deemphasized')).toBe(false)
   })
+
+  it('renders a fading ghost piece at a point that was just captured', () => {
+    const before: GameState = {
+      ...createGame(),
+      board: { ...createGame().board, a1: 'white', d2: 'black' },
+    }
+    const { container, rerender } = render(<Board state={before} />)
+    expect(container.querySelectorAll('.piece-ghost')).toHaveLength(0)
+
+    const after: GameState = { ...before, board: { ...before.board, d2: null } }
+    rerender(<Board state={after} />)
+
+    const ghost = container.querySelector('[data-point="d2"] .piece-ghost')
+    expect(ghost).not.toBeNull()
+    expect(ghost?.querySelector('.piece[data-player="black"]')).not.toBeNull()
+  })
+
+  it('does not render a ghost piece for a placement or a move', () => {
+    const before: GameState = { ...createGame(), board: { ...createGame().board, a1: 'white' } }
+    const { container, rerender } = render(<Board state={before} />)
+
+    const placed: GameState = { ...before, board: { ...before.board, d2: 'black' } }
+    rerender(<Board state={placed} />)
+    expect(container.querySelectorAll('.piece-ghost')).toHaveLength(0)
+
+    const moved: GameState = {
+      ...placed,
+      board: { ...placed.board, a1: null, a4: 'white' },
+    }
+    rerender(<Board state={moved} />)
+    expect(container.querySelectorAll('.piece-ghost')).toHaveLength(0)
+  })
 })

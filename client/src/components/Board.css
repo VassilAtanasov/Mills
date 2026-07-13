@@ -38,6 +38,42 @@
 
 .piece {
   filter: drop-shadow(var(--shadow-piece));
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: piece-enter var(--motion-base) var(--motion-easing);
+}
+
+@keyframes piece-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.piece-ghost {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: piece-exit var(--motion-base) var(--motion-easing);
+  pointer-events: none;
+}
+
+.piece-ghost .piece {
+  animation: none;
+}
+
+@keyframes piece-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.4);
+  }
 }
 
 .board-point[data-legal-target='true'] .point-marker {
@@ -60,4 +96,16 @@
   stroke: var(--highlight-in-mill);
   stroke-width: 2;
   fill: none;
+  animation: mill-pulse var(--motion-slow) var(--motion-easing);
+}
+
+@keyframes mill-pulse {
+  from {
+    stroke-width: 8;
+    stroke-opacity: 1;
+  }
+  to {
+    stroke-width: 2;
+    stroke-opacity: 1;
+  }
 }
