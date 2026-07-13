@@ -120,6 +120,85 @@ describe('Board', () => {
     expect(svg?.classList.contains('board-deemphasized')).toBe(false)
   })
 
+  it('gives every point a keyboard-focusable button role and a position/state ARIA label', () => {
+    const state = createGame()
+    const { container } = render(<Board state={state} legalTargets={new Set(['a1'])} />)
+
+    const points = container.querySelectorAll('[data-point]')
+    expect(points).toHaveLength(24)
+    for (const point of points) {
+      expect(point.getAttribute('role')).toBe('button')
+      expect(point.getAttribute('tabindex')).toBe('0')
+      expect(point.getAttribute('aria-label')).toMatch(/^Point \w+, /)
+    }
+    expect(container.querySelector('[data-point="a1"]')?.getAttribute('aria-label')).toBe(
+      'Point a1, empty, legal move',
+    )
+  })
+
+  it('reflects occupant, selected, capturable, and in-mill state in the ARIA label', () => {
+    const state: GameState = {
+      ...createGame(),
+      board: { ...createGame().board, a1: 'white', a4: 'white', a7: 'white', d1: 'black' },
+    }
+    const { container } = render(<Board state={state} selected="a1" capturable={new Set(['d1'])} />)
+
+    expect(container.querySelector('[data-point="a1"]')?.getAttribute('aria-label')).toBe(
+      'Point a1, white piece, selected, in a mill',
+    )
+    expect(container.querySelector('[data-point="d1"]')?.getAttribute('aria-label')).toBe(
+      'Point d1, black piece, capturable',
+    )
+  })
+
+  it('invokes onPointClick when Enter or Space is pressed on a focused point', () => {
+    const onPointClick = vi.fn()
+    const state = createGame()
+    const { container } = render(<Board state={state} onPointClick={onPointClick} />)
+
+    const point = container.querySelector('[data-point="d1"]')
+    if (!point) throw new Error('expected point d1 to render')
+
+    fireEvent.keyDown(point, { key: 'Enter' })
+    fireEvent.keyDown(point, { key: ' ' })
+
+    expect(onPointClick).toHaveBeenCalledTimes(2)
+    expect(onPointClick).toHaveBeenNthCalledWith(1, 'd1')
+    expect(onPointClick).toHaveBeenNthCalledWith(2, 'd1')
+  })
+
+  it('does not invoke onPointClick for unrelated keys', () => {
+    const onPointClick = vi.fn()
+    const state = createGame()
+    const { container } = render(<Board state={state} onPointClick={onPointClick} />)
+
+    const point = container.querySelector('[data-point="d1"]')
+    if (!point) throw new Error('expected point d1 to render')
+    fireEvent.keyDown(point, { key: 'Tab' })
+
+    expect(onPointClick).not.toHaveBeenCalled()
+  })
+
+  it('removes points from the tab order and ignores activation once the game is over', () => {
+    const onPointClick = vi.fn()
+    const state: GameState = {
+      ...createGame(),
+      board: { ...createGame().board, a1: 'white' },
+      result: { type: 'win', winner: 'white', reason: 'White wins — Black has no legal moves' },
+    }
+    const { container } = render(<Board state={state} onPointClick={onPointClick} />)
+
+    const point = container.querySelector('[data-point="d1"]')
+    if (!point) throw new Error('expected point d1 to render')
+
+    expect(point.getAttribute('tabindex')).toBe('-1')
+    expect(point.getAttribute('aria-disabled')).toBe('true')
+
+    fireEvent.click(point)
+    fireEvent.keyDown(point, { key: 'Enter' })
+    expect(onPointClick).not.toHaveBeenCalled()
+  })
+
   it('renders a fading ghost piece at a point that was just captured', () => {
     const before: GameState = {
       ...createGame(),

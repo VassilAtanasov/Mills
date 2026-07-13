@@ -36,6 +36,18 @@
   cursor: pointer;
 }
 
+.board-point:focus {
+  outline: none;
+}
+
+/* Outline on the group itself (not the hit-area's stroke) so the focus ring
+   can never be overridden by the data-driven capturable/in-mill stroke rules
+   below, which share the same specificity. */
+.board-point:focus-visible {
+  outline: 3px solid var(--highlight-selected);
+  outline-offset: 2px;
+}
+
 .piece {
   filter: drop-shadow(var(--shadow-piece));
   transform-box: fill-box;

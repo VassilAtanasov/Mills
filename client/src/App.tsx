@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Board } from './components/Board'
 import { ResultModal } from './components/ResultModal'
 import { StatusBar } from './components/StatusBar'
@@ -7,6 +8,12 @@ import './App.css'
 
 function App() {
   const { game, error, highlights, pointClicked, newGame } = useGame()
+  const [modalDismissed, setModalDismissed] = useState(false)
+
+  const handleRematch = () => {
+    setModalDismissed(false)
+    newGame()
+  }
 
   return (
     <main className="app">
@@ -24,7 +31,13 @@ function App() {
         capturable={highlights.capturable}
         onPointClick={pointClicked}
       />
-      {game.result ? <ResultModal result={game.result} onRematch={newGame} /> : null}
+      {game.result && !modalDismissed ? (
+        <ResultModal
+          result={game.result}
+          onRematch={handleRematch}
+          onDismiss={() => setModalDismissed(true)}
+        />
+      ) : null}
     </main>
   )
 }

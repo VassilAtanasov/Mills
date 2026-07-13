@@ -30,6 +30,29 @@ const EDGES = boardEdges()
 
 const EMPTY_SET: ReadonlySet<PointId> = new Set()
 
+function pointLabel(
+  point: PointId,
+  occupant: 'white' | 'black' | null,
+  {
+    selected,
+    legalTarget,
+    capturable,
+    inMill,
+  }: {
+    readonly selected: boolean
+    readonly legalTarget: boolean
+    readonly capturable: boolean
+    readonly inMill: boolean
+  },
+): string {
+  const parts = [`Point ${point}`, occupant ? `${occupant} piece` : 'empty']
+  if (selected) parts.push('selected')
+  if (legalTarget) parts.push('legal move')
+  if (capturable) parts.push('capturable')
+  if (inMill) parts.push('in a mill')
+  return parts.join(', ')
+}
+
 export function Board({
   state,
   selected = null,
@@ -111,17 +134,40 @@ export function Board({
           const { x, y } = layoutFor(point)
           const occupant = state.board[point]
           const inMill = occupant !== null && isInMill(state.board, point, occupant)
+          const isSelected = selected === point
+          const isLegalTarget = legalTargets.has(point)
+          const isCapturable = capturable.has(point)
+          const handleActivate = onPointClick && !isOver ? () => onPointClick(point) : undefined
           return (
             <g
               key={point}
               className="board-point"
               data-point={point}
               data-state={occupant ?? 'empty'}
-              data-selected={selected === point}
-              data-legal-target={legalTargets.has(point)}
-              data-capturable={capturable.has(point)}
+              data-selected={isSelected}
+              data-legal-target={isLegalTarget}
+              data-capturable={isCapturable}
               data-in-mill={inMill}
-              onClick={onPointClick ? () => onPointClick(point) : undefined}
+              role="button"
+              tabIndex={isOver ? -1 : 0}
+              aria-disabled={isOver}
+              aria-label={pointLabel(point, occupant, {
+                selected: isSelected,
+                legalTarget: isLegalTarget,
+                capturable: isCapturable,
+                inMill,
+              })}
+              onClick={handleActivate}
+              onKeyDown={
+                handleActivate
+                  ? (event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        handleActivate()
+                      }
+                    }
+                  : undefined
+              }
             >
               <circle className="point-hit-area" cx={x} cy={y} r={26} />
               <circle className="point-marker" cx={x} cy={y} r={6} />
