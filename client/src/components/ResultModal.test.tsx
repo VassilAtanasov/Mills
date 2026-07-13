@@ -10,7 +10,7 @@ describe('ResultModal', () => {
       winner: 'white',
       reason: 'White wins — Black has no legal moves',
     }
-    render(<ResultModal result={result} onRematch={() => {}} onDismiss={() => {}} />)
+    render(<ResultModal result={result} mode="hotseat" onRematch={() => {}} onDismiss={() => {}} />)
     expect(screen.getByText('White wins — Black has no legal moves')).toBeInTheDocument()
   })
 
@@ -19,7 +19,7 @@ describe('ResultModal', () => {
       type: 'draw',
       reason: 'Draw — the same position has occurred three times',
     }
-    render(<ResultModal result={result} onRematch={() => {}} onDismiss={() => {}} />)
+    render(<ResultModal result={result} mode="hotseat" onRematch={() => {}} onDismiss={() => {}} />)
     expect(
       screen.getByText('Draw — the same position has occurred three times'),
     ).toBeInTheDocument()
@@ -28,7 +28,7 @@ describe('ResultModal', () => {
   it('calls onRematch when the rematch button is clicked', () => {
     const onRematch = vi.fn()
     const result: GameResult = { type: 'draw', reason: 'Draw — 50 moves without a mill or capture' }
-    render(<ResultModal result={result} onRematch={onRematch} onDismiss={() => {}} />)
+    render(<ResultModal result={result} mode="hotseat" onRematch={onRematch} onDismiss={() => {}} />)
 
     fireEvent.click(screen.getByRole('button', { name: /rematch/i }))
     expect(onRematch).toHaveBeenCalledTimes(1)
@@ -37,7 +37,7 @@ describe('ResultModal', () => {
   it('renders no confetti/particle markup — just the outcome text and rematch control', () => {
     const result: GameResult = { type: 'draw', reason: 'Draw — 50 moves without a mill or capture' }
     const { container } = render(
-      <ResultModal result={result} onRematch={() => {}} onDismiss={() => {}} />,
+      <ResultModal result={result} mode="hotseat" onRematch={() => {}} onDismiss={() => {}} />,
     )
     expect(
       container.querySelectorAll('svg, canvas, [class*="confetti"], [class*="particle"]'),
@@ -47,7 +47,7 @@ describe('ResultModal', () => {
   it('calls onDismiss when the dismiss control is activated by keyboard', () => {
     const onDismiss = vi.fn()
     const result: GameResult = { type: 'draw', reason: 'Draw — 50 moves without a mill or capture' }
-    render(<ResultModal result={result} onRematch={() => {}} onDismiss={onDismiss} />)
+    render(<ResultModal result={result} mode="hotseat" onRematch={() => {}} onDismiss={onDismiss} />)
 
     const dismissButton = screen.getByRole('button', { name: /dismiss/i })
     dismissButton.focus()
@@ -59,7 +59,7 @@ describe('ResultModal', () => {
 
   it('moves focus into the dialog as soon as it mounts, so Escape is reachable without an explicit Tab', () => {
     const result: GameResult = { type: 'draw', reason: 'Draw — 50 moves without a mill or capture' }
-    render(<ResultModal result={result} onRematch={() => {}} onDismiss={() => {}} />)
+    render(<ResultModal result={result} mode="hotseat" onRematch={() => {}} onDismiss={() => {}} />)
 
     expect(document.activeElement).toBe(screen.getByRole('button', { name: /dismiss/i }))
   })
@@ -67,7 +67,7 @@ describe('ResultModal', () => {
   it('calls onDismiss when Escape is pressed from wherever focus landed on mount', () => {
     const onDismiss = vi.fn()
     const result: GameResult = { type: 'draw', reason: 'Draw — 50 moves without a mill or capture' }
-    render(<ResultModal result={result} onRematch={() => {}} onDismiss={onDismiss} />)
+    render(<ResultModal result={result} mode="hotseat" onRematch={() => {}} onDismiss={onDismiss} />)
 
     // Do not target the dialog element directly: fire on whatever the browser's real
     // focus-follows-mount behavior put focus on, to catch event-scoping regressions.
@@ -79,7 +79,7 @@ describe('ResultModal', () => {
 
   it('traps Tab focus between dismiss and rematch, wrapping in both directions', () => {
     const result: GameResult = { type: 'draw', reason: 'Draw — 50 moves without a mill or capture' }
-    render(<ResultModal result={result} onRematch={() => {}} onDismiss={() => {}} />)
+    render(<ResultModal result={result} mode="hotseat" onRematch={() => {}} onDismiss={() => {}} />)
 
     const dismiss = screen.getByRole('button', { name: /dismiss/i })
     const rematch = screen.getByRole('button', { name: /rematch/i })
@@ -94,12 +94,46 @@ describe('ResultModal', () => {
 
   it('keeps dismiss and rematch as separate, independently keyboard-reachable controls', () => {
     const result: GameResult = { type: 'draw', reason: 'Draw — 50 moves without a mill or capture' }
-    render(<ResultModal result={result} onRematch={() => {}} onDismiss={() => {}} />)
+    render(<ResultModal result={result} mode="hotseat" onRematch={() => {}} onDismiss={() => {}} />)
 
     const dismiss = screen.getByRole('button', { name: /dismiss/i })
     const rematch = screen.getByRole('button', { name: /rematch/i })
     expect(dismiss).not.toBe(rematch)
     expect(dismiss.tagName).toBe('BUTTON')
     expect(rematch.tagName).toBe('BUTTON')
+  })
+})
+
+describe('ResultModal: vs-computer copy', () => {
+  it('rewrites a human win reason to You/the computer', () => {
+    const result: GameResult = {
+      type: 'win',
+      winner: 'white',
+      reason: 'White wins — Black has no legal moves',
+    }
+    render(<ResultModal result={result} mode="vs-computer" onRematch={() => {}} onDismiss={() => {}} />)
+    expect(
+      screen.getByText('You win — the computer has no legal moves'),
+    ).toBeInTheDocument()
+  })
+
+  it('rewrites a computer win reason to Computer/you', () => {
+    const result: GameResult = {
+      type: 'win',
+      winner: 'black',
+      reason: 'Black wins — White has fewer than three pieces',
+    }
+    render(<ResultModal result={result} mode="vs-computer" onRematch={() => {}} onDismiss={() => {}} />)
+    expect(
+      screen.getByText('Computer wins — you have fewer than three pieces'),
+    ).toBeInTheDocument()
+  })
+
+  it('leaves a draw reason unchanged, since it never names a player', () => {
+    const result: GameResult = { type: 'draw', reason: 'Draw — the same position has occurred three times' }
+    render(<ResultModal result={result} mode="vs-computer" onRematch={() => {}} onDismiss={() => {}} />)
+    expect(
+      screen.getByText('Draw — the same position has occurred three times'),
+    ).toBeInTheDocument()
   })
 })

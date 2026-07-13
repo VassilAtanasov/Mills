@@ -27,7 +27,8 @@ describe('gameReducer: placing phase', () => {
   })
 
   it('surfaces the engine rejection reason verbatim when clicking an occupied point', () => {
-    const placed = gameReducer(createInitialUiState(), { type: 'POINT_CLICKED', point: 'a1' })
+    const hotseat = stateWith({ mode: 'hotseat' })
+    const placed = gameReducer(hotseat, { type: 'POINT_CLICKED', point: 'a1' })
     const rejected = gameReducer(placed, { type: 'POINT_CLICKED', point: 'a1' })
     expect(rejected.error).toBe('point a1 is occupied')
     expect(rejected.game).toBe(placed.game) // unchanged
@@ -172,8 +173,11 @@ describe('createInitialUiState', () => {
 })
 
 describe('gameReducer: SET_MODE', () => {
-  it('defaults to hotseat mode', () => {
-    expect(createInitialUiState().mode).toBe('hotseat')
+  it('defaults to vs-computer mode on load, with the human as White to move first', () => {
+    const initial = createInitialUiState()
+    expect(initial.mode).toBe('vs-computer')
+    expect(initial.game.currentPlayer).toBe('white')
+    expect(initial.game.phase).toBe('placing')
   })
 
   it('switches mode and starts a fresh game immediately', () => {
@@ -189,7 +193,7 @@ describe('gameReducer: SET_MODE', () => {
     expect(next.error).toBeNull()
   })
 
-  it('keeps the mode across a NEW_GAME (rematch)', () => {
+  it('keeps vs-computer mode across a NEW_GAME (rematch)', () => {
     const game = movingGame({
       result: { type: 'win', winner: 'white', reason: 'White wins — Black has no legal moves' },
     })
@@ -198,6 +202,18 @@ describe('gameReducer: SET_MODE', () => {
     const next = gameReducer(state, { type: 'NEW_GAME' })
 
     expect(next.mode).toBe('vs-computer')
+    expect(next.game.result).toBeNull()
+  })
+
+  it('keeps hotseat mode across a NEW_GAME (rematch) too', () => {
+    const game = movingGame({
+      result: { type: 'draw', reason: 'Draw — 50 moves without a mill or capture' },
+    })
+    const state = stateWith({ game, mode: 'hotseat' })
+
+    const next = gameReducer(state, { type: 'NEW_GAME' })
+
+    expect(next.mode).toBe('hotseat')
     expect(next.game.result).toBeNull()
   })
 })

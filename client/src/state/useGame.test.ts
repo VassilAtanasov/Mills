@@ -58,6 +58,9 @@ describe('useGame: vs-computer AI turn', () => {
     const { result } = renderHook(() => useGame())
 
     act(() => {
+      result.current.setMode('hotseat')
+    })
+    act(() => {
       result.current.pointClicked('a1')
     })
 

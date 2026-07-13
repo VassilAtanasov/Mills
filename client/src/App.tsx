@@ -20,7 +20,7 @@ function App() {
     <main className="app">
       <h1>Nine Men&apos;s Morris</h1>
       <ModeControl mode={mode} onModeChange={setMode} />
-      <StatusBar state={game} />
+      <StatusBar state={game} mode={mode} />
       {error ? (
         <p className="app-error" role="alert">
           {error}
@@ -36,6 +36,7 @@ function App() {
       {game.result && !modalDismissed ? (
         <ResultModal
           result={game.result}
+          mode={mode}
           onRematch={handleRematch}
           onDismiss={() => setModalDismissed(true)}
         />
