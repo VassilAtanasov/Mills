@@ -37,6 +37,31 @@ export default tseslint.config(
               group: ['**/components/**', '**/src/components/**'],
               message: 'The rules engine must not depend on UI components (ARCHITECTURE.md D-2).',
             },
+            {
+              group: ['**/ai/**', '**/src/ai/**'],
+              message:
+                'The rules engine must not depend on the AI module — the dependency is one-way, ai -> engine (ARCHITECTURE.md D-9).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/ai/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: 'react', message: 'The AI module must stay framework-free (ARCHITECTURE.md D-9).' },
+            { name: 'react-dom', message: 'The AI module must stay framework-free (ARCHITECTURE.md D-9).' },
+          ],
+          patterns: [
+            {
+              group: ['**/components/**', '**/src/components/**'],
+              message: 'The AI module must not depend on UI components (ARCHITECTURE.md D-9).',
+            },
           ],
         },
       ],

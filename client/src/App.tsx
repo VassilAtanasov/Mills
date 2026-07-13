@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Board } from './components/Board'
+import { ModeControl } from './components/ModeControl'
 import { ResultModal } from './components/ResultModal'
 import { StatusBar } from './components/StatusBar'
 import { useGame } from './state/useGame'
@@ -7,7 +8,7 @@ import './styles/theme.css'
 import './App.css'
 
 function App() {
-  const { game, error, highlights, pointClicked, newGame } = useGame()
+  const { game, mode, error, highlights, pointClicked, newGame, setMode } = useGame()
   const [modalDismissed, setModalDismissed] = useState(false)
 
   const handleRematch = () => {
@@ -18,6 +19,7 @@ function App() {
   return (
     <main className="app">
       <h1>Nine Men&apos;s Morris</h1>
+      <ModeControl mode={mode} onModeChange={setMode} />
       <StatusBar state={game} />
       {error ? (
         <p className="app-error" role="alert">

@@ -140,6 +140,15 @@ FR-20: The computer's turn is followable, so that the human can track what just 
     says "You" / "Computer" (e.g. "You win — the computer has no legal moves") instead of
     White / Black.
 
+FR-21: State changes are reinforced with sound, so that players get audible feedback alongside the
+motion layer (added 2026-07-13, reverses the earlier "no audio" non-goal).
+  - Acceptance: a distinct short sound plays on piece placement/movement, on forming a mill, on a
+    capture, and on game end (win/draw); all sounds are synthesized at runtime via the Web Audio
+    API (no bundled audio files, no network fetches — consistent with the static-site constraint);
+    a visible, keyboard-operable mute toggle sits in the status bar area, defaults to sound on, and
+    silences all sound instantly when engaged; the mute state is a UI-only concern (not persisted
+    across reloads — consistent with the ephemeral-by-design principle in §5).
+
 Design & UX:
 
 FR-12: The game presents a classic wooden board-game aesthetic, so that it feels like a real
@@ -206,7 +215,6 @@ tablet around.
 - Persistence of any kind: saved games, resume after restart, game history.
 - Undo/redo.
 - Move history panel, editable player names, phase-transition banner hints.
-- Sound effects / audio of any kind (motion is visual only).
 - Dark mode / theme switching — a single well-crafted warm-wood theme ships (FR-12).
 - Bundled image or texture assets — the wooden look is rendered from CSS/SVG primitives (FR-12).
 - Confetti / particle / arcade-style win effects — the win moment stays elegant (FR-15).
