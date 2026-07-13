@@ -2,10 +2,12 @@
 
 [![CI](https://github.com/VassilAtanasov/Mills/actions/workflows/ci.yml/badge.svg)](https://github.com/VassilAtanasov/Mills/actions/workflows/ci.yml)
 
+**Play the game: [vassilatanasov.github.io/Mills](https://vassilatanasov.github.io/Mills/)**
+
 This repository is an **autonomous software development lifecycle template** driven by
-[Claude Code](https://claude.com/claude-code). The agent persona is called **Ivan**.
-There is no application code yet — the machinery here turns requirements into
-professionally gated, tested, reviewed code with minimal human involvement.
+[Claude Code](https://claude.com/claude-code). The agent persona is called **Ivan**. It has
+built a complete, browser-playable Nine Men's Morris game — the machinery here turns
+requirements into professionally gated, tested, reviewed code with minimal human involvement.
 
 ## The lifecycle
 
@@ -45,9 +47,8 @@ gate.ps1                the quality gate (auto-detects what exists)
 docs/                   REQUIREMENTS.md + ARCHITECTURE.md (written during /discover)
 .claude/settings.json   permissions + hooks wiring + ivan plugin enablement
 .claude/hooks/          format-on-edit, gate-on-stop
-.github/workflows/      CI running gate.ps1
-server/                 (future) ASP.NET Core backend
-client/                 (future) React + TypeScript frontend
+.github/workflows/      ci.yml (the gate, on PRs and pushes to main) + deploy.yml (GitHub Pages, on push to main)
+client/                 React + TypeScript (Vite) app — the game itself; no backend
 ```
 
 The lifecycle skills (`/discover`, `/kickoff`, `/feature`, `/autopilot`, `/adopt`) and the

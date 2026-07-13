@@ -49,6 +49,7 @@ if ($clientPkg) {
     }
     Invoke-Step -Name 'npm run typecheck' -WorkDir $clientDir -Action { npm run typecheck }
     Invoke-Step -Name 'npm run lint'      -WorkDir $clientDir -Action { npm run lint }
+    Invoke-Step -Name 'npm run build'     -WorkDir $clientDir -Action { npm run build }
     Invoke-Step -Name 'npm test'          -WorkDir $clientDir -Action { npm test -- --run }
 }
 

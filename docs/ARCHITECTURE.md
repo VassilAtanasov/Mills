@@ -100,8 +100,10 @@ gate.ps1           # repo-wide quality gate (auto-detects client/)
   `Phase`, `Action`, and results — make illegal states unrepresentable in types too.
 - **Starting the app** (qa-verifier): `cd client && npm install && npm run dev`, then open
   `http://localhost:5173/Mills/`. Production build check: `npm run build && npm run preview`.
-- **Quality gate**: `./gate.ps1` at repo root runs typecheck, lint, and tests in `client/`. It is
-  the same gate CI runs; green gate is a merge precondition.
+- **Quality gate**: `./gate.ps1` at repo root runs typecheck, lint, build, and tests in `client/`.
+  It is the same gate CI runs; green gate is a merge precondition. The build step catches
+  production-build breaks (e.g. Rollup resolution failures) that `tsc --noEmit` alone would miss,
+  before they reach the post-merge deploy workflow (D-5).
 
 ### Design conventions (build-mode Ivan must follow these)
 
