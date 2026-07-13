@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer, useRef } from 'react'
+import * as audio from '../audio/audio'
 import { chooseAction } from '../ai/ai'
 import type { GameState, PointId } from '../engine/types'
 import {
@@ -7,8 +8,17 @@ import {
   gameReducer,
   type Mode,
 } from './gameReducer'
+import { detectSoundEvent } from './soundEvents'
 
 const AI_THINKING_DELAY_MS = 500
+
+const SOUND_EFFECTS: Record<NonNullable<ReturnType<typeof detectSoundEvent>>, () => void> = {
+  place: audio.playPlace,
+  mill: audio.playMill,
+  capture: audio.playCapture,
+  win: audio.playWin,
+  draw: audio.playDraw,
+}
 
 function isAiTurn(mode: Mode, game: GameState): boolean {
   if (mode !== 'vs-computer' || game.result) {
@@ -21,6 +31,19 @@ function isAiTurn(mode: Mode, game: GameState): boolean {
 export function useGame() {
   const [state, dispatch] = useReducer(gameReducer, undefined, createInitialUiState)
   const { game, mode } = state
+  const prevGameRef = useRef<GameState | null>(null)
+
+  useEffect(() => {
+    const prevGame = prevGameRef.current
+    prevGameRef.current = game
+    if (!prevGame) {
+      return
+    }
+    const soundEvent = detectSoundEvent(prevGame, game)
+    if (soundEvent) {
+      SOUND_EFFECTS[soundEvent]()
+    }
+  }, [game])
 
   useEffect(() => {
     if (!isAiTurn(mode, game)) {
