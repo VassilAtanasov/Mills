@@ -1,0 +1,25 @@
+.mode-control {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mode-control-button {
+  font: inherit;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border);
+  background: var(--panel-background);
+  color: var(--panel-text);
+}
+
+.mode-control-button[aria-pressed='true'] {
+  background: var(--highlight-selected);
+  color: var(--panel-text);
+  border-color: var(--highlight-selected);
+}
+
+.mode-control-button:focus-visible {
+  outline: 2px solid var(--highlight-in-mill);
+  outline-offset: 2px;
+}

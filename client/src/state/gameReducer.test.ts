@@ -171,6 +171,85 @@ describe('createInitialUiState', () => {
   })
 })
 
+describe('gameReducer: SET_MODE', () => {
+  it('defaults to hotseat mode', () => {
+    expect(createInitialUiState().mode).toBe('hotseat')
+  })
+
+  it('switches mode and starts a fresh game immediately', () => {
+    const game = movingGame({ board: { ...createInitialUiState().game.board, a1: 'white' } })
+    const state = stateWith({ game, selected: 'a1', error: 'stale error', mode: 'hotseat' })
+
+    const next = gameReducer(state, { type: 'SET_MODE', mode: 'vs-computer' })
+
+    expect(next.mode).toBe('vs-computer')
+    expect(next.game.board.a1).toBeNull()
+    expect(next.game.phase).toBe('placing')
+    expect(next.selected).toBeNull()
+    expect(next.error).toBeNull()
+  })
+
+  it('keeps the mode across a NEW_GAME (rematch)', () => {
+    const game = movingGame({
+      result: { type: 'win', winner: 'white', reason: 'White wins — Black has no legal moves' },
+    })
+    const state = stateWith({ game, mode: 'vs-computer' })
+
+    const next = gameReducer(state, { type: 'NEW_GAME' })
+
+    expect(next.mode).toBe('vs-computer')
+    expect(next.game.result).toBeNull()
+  })
+})
+
+describe('gameReducer: AI_ACTION', () => {
+  it('applies the given action through the same engine path as human actions', () => {
+    const state = stateWith({ mode: 'vs-computer' })
+
+    const next = gameReducer(state, { type: 'AI_ACTION', action: { type: 'place', point: 'a1' } })
+
+    expect(next.game.board.a1).toBe('white')
+    expect(next.game.currentPlayer).toBe('black')
+    expect(next.error).toBeNull()
+  })
+
+  it('surfaces a rejection reason if the AI action is somehow illegal', () => {
+    const placed = gameReducer(stateWith({ mode: 'vs-computer' }), {
+      type: 'AI_ACTION',
+      action: { type: 'place', point: 'a1' },
+    })
+
+    const next = gameReducer(placed, { type: 'AI_ACTION', action: { type: 'place', point: 'a1' } })
+
+    expect(next.error).toBe('point a1 is occupied')
+  })
+})
+
+describe('gameReducer: vs-computer blocks human action on the computer turn', () => {
+  it('ignores a POINT_CLICKED for black while it is the computer turn', () => {
+    const game = movingGame({ board: { ...createInitialUiState().game.board, a4: 'black' } })
+    const game2 = { ...game, currentPlayer: 'black' as const }
+    const state = stateWith({ game: game2, mode: 'vs-computer' })
+
+    const next = gameReducer(state, { type: 'POINT_CLICKED', point: 'a4' })
+
+    expect(next).toBe(state)
+  })
+
+  it('ignores a POINT_CLICKED during a pending black capture', () => {
+    const game = movingGame({
+      pendingCapture: 'black',
+      currentPlayer: 'black',
+      board: { ...createInitialUiState().game.board, d2: 'white' },
+    })
+    const state = stateWith({ game, mode: 'vs-computer' })
+
+    const next = gameReducer(state, { type: 'POINT_CLICKED', point: 'd2' })
+
+    expect(next).toBe(state)
+  })
+})
+
 describe('gameReducer: NEW_GAME', () => {
   it('resets to a fresh game from a terminal state', () => {
     const game = movingGame({
