@@ -1,4 +1,44 @@
 :root {
-  --color-background: #f5efe6;
-  --color-text: #2b1d10;
+  color-scheme: light dark;
+
+  /* Wood palette */
+  --wood-board-dark: #6b4226;
+  --wood-board-mid: #8a5a34;
+  --wood-board-light: #b98255;
+  --wood-frame: #4a2c17;
+  --wood-line: #3a2213;
+  --wood-line-soft: rgba(58, 34, 19, 0.55);
+
+  --page-background: #2c2016;
+  --panel-background: #efe3d0;
+  --panel-text: #2b1d10;
+  --panel-text-muted: #6b5842;
+  --panel-border: rgba(58, 34, 19, 0.18);
+
+  /* Pieces */
+  --piece-white-base: #f4ead9;
+  --piece-white-highlight: #fffdf8;
+  --piece-white-shadow: #c9b699;
+  --piece-white-mark: rgba(107, 66, 38, 0.55);
+
+  --piece-black-base: #2a1f18;
+  --piece-black-highlight: #4d3a2c;
+  --piece-black-shadow: #0f0a06;
+  --piece-black-mark: rgba(244, 234, 217, 0.65);
+
+  /* Shadows */
+  --shadow-board: 0 20px 45px rgba(0, 0, 0, 0.45);
+  --shadow-piece: 0 3px 4px rgba(0, 0, 0, 0.45);
+  --shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.3);
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 10px;
+  --radius-lg: 18px;
+
+  /* Motion (durations/easings; applied starting with the motion issue) */
+  --motion-fast: 150ms;
+  --motion-base: 300ms;
+  --motion-slow: 500ms;
+  --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
 }

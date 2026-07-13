@@ -1,0 +1,21 @@
+.board {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 640px;
+  filter: drop-shadow(var(--shadow-board));
+}
+
+.board-lines line {
+  stroke: var(--wood-line);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.point-marker {
+  fill: var(--wood-line-soft);
+}
+
+.piece {
+  filter: drop-shadow(var(--shadow-piece));
+}
