@@ -5,8 +5,9 @@
 
 ## 1. Product goal
 
-A complete, correct, browser-playable implementation of **Nine Men's Morris** (the mill game) for
-two players sharing one device. It exists as the flagship exercise of the Mills autonomous SDLC
+A complete, correct, browser-playable implementation of **Nine Men's Morris** (the mill game),
+playable solo against a computer opponent (the default mode — a lone visitor to the public URL
+gets a full game immediately) or by two players sharing one device. It exists as the flagship exercise of the Mills autonomous SDLC
 pipeline: the product must be a genuinely finished game — full official rules (placing, moving,
 and flying phases; mill formation and captures; win and draw detection) — with a UI clear enough
 that someone who has never played can complete a game without reading rules elsewhere. It is a
@@ -20,11 +21,15 @@ because the codebase is the portfolio piece.
   autonomous development with Claude Code. Uses it to demonstrate and inspect the pipeline's output.
 - **Two casual players at one device** — occasional hotseat sessions; may not know the rules, so
   the UI must teach through affordances (legal-move highlighting, phase indicators), not manuals.
+- **A lone visitor to the public URL** — arrives alone (e.g. from the portfolio link), so the
+  default experience must be a complete game against the computer with zero setup.
 
 ## 3. Success criteria
 
 - Two people can play a complete legal game from empty board to win/draw; no illegal state is
   reachable through the UI.
+- A lone visitor can play a complete legal game against the computer from page load to win/draw
+  without any setup; the computer never takes an illegal action and never stalls the game.
 - Every rule path is covered by automated tests: mill formation (including double mills), capture
   restrictions (pieces in mills protected unless nothing else is available), the flying phase at
   three pieces, win by reduction below three pieces or by no legal moves.
@@ -103,6 +108,38 @@ one link away.
     every merge to `main`; the deployed app is fully functional at the Pages URL (asset paths
     respect the `/Mills/` base path).
 
+Computer opponent:
+
+FR-17: The app opens into a game against the computer, and a player can switch to two-player
+hotseat, so that both a lone visitor and two co-located players are served.
+  - Acceptance: loading the app starts a fresh vs-computer game with the human as White (moving
+    first) and the computer as Black; a visible mode control switches between "vs computer" and
+    "2 players"; switching modes starts a fresh game immediately, with no confirmation (state is
+    ephemeral by design); rematch starts a new game in the current mode.
+
+FR-18: The computer takes complete legal turns through the engine's public API, so that the
+engine remains the single rules implementation.
+  - Acceptance: on its turn the computer chooses only among engine-reported legal actions —
+    placing, moving, flying, and the forced capture after forming a mill; it never submits an
+    action the engine rejects; games against the computer reach win/draw states exactly as in
+    hotseat; the AI module contains no move-legality logic of its own.
+
+FR-19: The computer plays a sensible tactical game, so that a casual player is challenged but
+not crushed.
+  - Acceptance (deterministic under an injected random seed, each behavior unit-tested against
+    constructed positions): when the computer can complete a mill this turn, it does; otherwise,
+    when the opponent could complete a mill on their next turn and a blocking action exists, it
+    blocks; when capturing, it prefers pieces by heuristic value (breaking the opponent's
+    potential mills and mobility) over arbitrary choice; among equally scored actions it picks
+    uniformly at random, so consecutive games differ.
+
+FR-20: The computer's turn is followable, so that the human can track what just happened.
+  - Acceptance: a brief thinking pause (~0.5 s) precedes the computer's action; the status bar
+    shows that it is the computer's turn; the computer's action plays through the existing motion
+    layer (FR-14), honoring `prefers-reduced-motion`; in vs-computer mode, player-facing copy
+    says "You" / "Computer" (e.g. "You win — the computer has no legal moves") instead of
+    White / Black.
+
 Design & UX:
 
 FR-12: The game presents a classic wooden board-game aesthetic, so that it feels like a real
@@ -159,7 +196,11 @@ tablet around.
 ## 6. Out of scope
 
 - Any backend or server-side code — the product is a static site.
-- AI / computer opponent.
+- AI difficulty levels or a strength picker — exactly one tuned level ships (decided 2026-07-13).
+- Choosing sides against the computer — the human is always White; and no AI-vs-AI mode.
+- Search-based AI (minimax/alpha-beta or deeper) — the computer plays a 1-ply tactical heuristic
+  (ARCHITECTURE.md D-10); do not "upgrade" it during build.
+- Hints, move suggestions, or take-backs for the human in vs-computer play.
 - Online multiplayer, async play, spectating — any form of networking between players.
 - Accounts, authentication, profiles, stats, rankings.
 - Persistence of any kind: saved games, resume after restart, game history.

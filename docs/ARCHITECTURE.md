@@ -13,9 +13,12 @@ published to GitHub Pages.
 ```
 ┌─────────────────────────── browser ───────────────────────────┐
 │  React UI (components, useReducer)                             │
-│      │  actions (place / move / capture / newGame)             │
+│      │  actions (place / move / capture / newGame / mode)      │
 │      ▼                                                         │
 │  Rules engine (pure TS, immutable GameState, no React imports) │
+│      ▲                                                         │
+│      │  getLegalActions / applyAction (public API only)        │
+│  AI opponent (pure TS heuristic, second consumer of the engine)│
 └────────────────────────────────────────────────────────────────┘
         built by Vite → static files → GitHub Pages (/Mills/)
 ```
@@ -38,6 +41,9 @@ client/
       board.ts     #   the 24-point graph: adjacency + mill lines (static data)
       engine.ts    #   createGame / getLegalActions / applyAction
       *.test.ts    #   engine tests live beside the code they test
+    ai/            # computer opponent: pure TS, consumes ONLY the engine public API
+      ai.ts        #   chooseAction(state, rng): Action — 1-ply tactical heuristic (D-10)
+      ai.test.ts   #   behavior tests against constructed positions (FR-19)
     components/    # React components (Board, Point, StatusBar, GameOverDialog…)
     state/         # useReducer glue between UI events and engine calls
     styles/        # theme.css — design tokens (wood palette, shadows, motion timings)
@@ -87,6 +93,26 @@ gate.ps1           # repo-wide quality gate (auto-detects client/)
   switcher is scope the portfolio piece does not need. Tokens still live in CSS variables so the
   palette is centralized and a theme could be added later without refactoring components.
 
+- **D-9: The AI is a second consumer of the engine's public API — never a second rules
+  implementation.** The AI module (`src/ai/`) selects among `getLegalActions(state)` and may use
+  `applyAction` to preview outcomes; it contains zero legality logic of its own, so an engine fix
+  automatically fixes the AI (FR-18). Like the engine, it imports no React/DOM (same ESLint
+  boundary rule).
+- **D-10: 1-ply tactical heuristic, single tuned level.** Considered: minimax + alpha-beta at
+  fixed depth. Chosen (2026-07-13) because: one beatable-but-sensible level is the decided product
+  scope; a scored 1-ply choice with tactical priorities (complete own mill > block opponent's
+  imminent mill > best positional score; capture targets ranked by damage to opponent mills and
+  mobility) is fully unit-testable per behavior and keeps the module small. Ties between equally
+  scored actions break uniformly at random via an **injected RNG** (`rng: () => number`), so
+  gameplay varies but tests pass a seeded/stubbed RNG and stay deterministic. Deeper search is an
+  explicit non-goal (REQUIREMENTS §6) — do not upgrade during build.
+- **D-11: AI runs synchronously on the main thread; pacing lives in the UI layer.** Considered:
+  Web Worker. Chosen because: scoring at most a few dozen legal actions on a 24-point board takes
+  microseconds — there is nothing to offload, and worker bundling/message plumbing would be pure
+  overhead. The ~0.5 s "thinking" pause (FR-20) is a UI-layer scheduling concern (e.g. a delayed
+  dispatch in the reducer glue), NOT a sleep inside the AI module — `chooseAction` stays a pure
+  synchronous function.
+
 ## 5. Cross-cutting conventions
 
 - **Engine API shape**: `createGame(): GameState`; `getLegalActions(state): Action[]`;
@@ -94,6 +120,16 @@ gate.ps1           # repo-wide quality gate (auto-detects client/)
   Rejection `reason` strings are player-readable — the UI shows them verbatim (FR-9).
 - **Engine purity is enforced**: no imports from `react`, `react-dom`, or `src/components` inside
   `src/engine/` (ESLint `no-restricted-imports` rule). Engine functions are deterministic.
+- **AI API shape**: `chooseAction(state: GameState, rng: () => number): Action` — synchronous,
+  pure given `state` and `rng`, returns one of the engine's legal actions. The same purity ESLint
+  boundary applies to `src/ai/`; additionally `src/engine/` must never import from `src/ai/`
+  (the dependency is one-way: ai → engine).
+- **Game modes in UI state**: the reducer holds `mode: 'vs-computer' | 'hotseat'` alongside
+  `GameState`; the app initializes in `vs-computer` with the human as White. After a human action
+  in vs-computer mode, the reducer glue schedules the AI turn (~0.5 s delay per FR-20/D-11) and
+  dispatches the chosen action through the same path human actions use. Mode switch and rematch
+  create a fresh game; rematch keeps the mode. In vs-computer mode, player-facing copy renders
+  "You" / "Computer" in place of White / Black (FR-20).
 - **Testing**: every engine behavior change ships Vitest tests beside the module. UI components
   get component tests for interaction logic (highlighting, forced capture flow), not for styling.
 - **TypeScript**: `strict: true`; no `any` (use `unknown` + narrowing); discriminated unions for
