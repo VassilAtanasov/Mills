@@ -9,10 +9,15 @@ export function useGame() {
     dispatch({ type: 'POINT_CLICKED', point })
   }, [])
 
+  const newGame = useCallback(() => {
+    dispatch({ type: 'NEW_GAME' })
+  }, [])
+
   return {
     game: state.game,
     error: state.error,
     highlights: computeHighlights(state),
     pointClicked,
+    newGame,
   }
 }

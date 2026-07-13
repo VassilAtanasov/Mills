@@ -4,6 +4,14 @@
   height: auto;
   max-width: 640px;
   filter: drop-shadow(var(--shadow-board));
+  transition:
+    opacity var(--motion-base) var(--motion-easing),
+    filter var(--motion-base) var(--motion-easing);
+}
+
+.board-deemphasized {
+  opacity: 0.4;
+  filter: drop-shadow(var(--shadow-board)) grayscale(0.4);
 }
 
 .board-panel {

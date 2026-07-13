@@ -7,13 +7,17 @@ export interface UiState {
   readonly error: string | null
 }
 
-export type UiAction = { type: 'POINT_CLICKED'; point: PointId }
+export type UiAction = { type: 'POINT_CLICKED'; point: PointId } | { type: 'NEW_GAME' }
 
 export function createInitialUiState(): UiState {
   return { game: createGame(), selected: null, error: null }
 }
 
 export function gameReducer(state: UiState, action: UiAction): UiState {
+  if (action.type === 'NEW_GAME') {
+    return createInitialUiState()
+  }
+
   const { point } = action
   const { game, selected } = state
 
