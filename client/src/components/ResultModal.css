@@ -1,0 +1,40 @@
+.result-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.result-modal {
+  background: var(--panel-background);
+  color: var(--panel-text);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.result-modal-outcome {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.result-modal-rematch {
+  font: inherit;
+  font-weight: 600;
+  color: var(--piece-white-base);
+  background: var(--wood-board-mid);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1.5rem;
+  cursor: pointer;
+}

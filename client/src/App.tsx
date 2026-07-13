@@ -1,11 +1,12 @@
 import { Board } from './components/Board'
+import { ResultModal } from './components/ResultModal'
 import { StatusBar } from './components/StatusBar'
 import { useGame } from './state/useGame'
 import './styles/theme.css'
 import './App.css'
 
 function App() {
-  const { game, error, highlights, pointClicked } = useGame()
+  const { game, error, highlights, pointClicked, newGame } = useGame()
 
   return (
     <main className="app">
@@ -23,6 +24,7 @@ function App() {
         capturable={highlights.capturable}
         onPointClick={pointClicked}
       />
+      {game.result ? <ResultModal result={game.result} onRematch={newGame} /> : null}
     </main>
   )
 }

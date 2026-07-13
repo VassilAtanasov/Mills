@@ -98,4 +98,25 @@ describe('Board', () => {
     expect(onPointClick).toHaveBeenCalledTimes(1)
     expect(onPointClick).toHaveBeenCalledWith('d1')
   })
+
+  it('de-emphasizes the board once the game has a result', () => {
+    const state: GameState = {
+      ...createGame(),
+      result: { type: 'win', winner: 'white', reason: 'White wins — Black has no legal moves' },
+    }
+    const { container } = render(<Board state={state} />)
+
+    const svg = container.querySelector('svg.board')
+    expect(svg?.getAttribute('data-game-over')).toBe('true')
+    expect(svg?.classList.contains('board-deemphasized')).toBe(true)
+  })
+
+  it('does not de-emphasize the board while the game is in progress', () => {
+    const state = createGame()
+    const { container } = render(<Board state={state} />)
+
+    const svg = container.querySelector('svg.board')
+    expect(svg?.getAttribute('data-game-over')).toBe('false')
+    expect(svg?.classList.contains('board-deemphasized')).toBe(false)
+  })
 })

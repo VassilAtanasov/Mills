@@ -36,12 +36,15 @@ export function Board({
   capturable = EMPTY_SET,
   onPointClick,
 }: BoardProps) {
+  const isOver = state.result !== null
+
   return (
     <svg
-      className="board"
+      className={isOver ? 'board board-deemphasized' : 'board'}
       viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}
       role="img"
       aria-label="Nine Men's Morris board"
+      data-game-over={isOver}
     >
       <defs>
         <radialGradient id="board-wood-gradient" cx="35%" cy="30%" r="80%">

@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { PIECES_PER_PLAYER } from '../engine/engine'
 import type { GameState } from '../engine/types'
-import {
-  computeHighlights,
-  createInitialUiState,
-  gameReducer,
-  type UiState,
-} from './gameReducer'
+import { computeHighlights, createInitialUiState, gameReducer, type UiState } from './gameReducer'
 
 function stateWith(overrides: Partial<UiState>): UiState {
   return { ...createInitialUiState(), ...overrides }
@@ -173,5 +168,37 @@ describe('createInitialUiState', () => {
     })
     expect(state.selected).toBeNull()
     expect(state.error).toBeNull()
+  })
+})
+
+describe('gameReducer: NEW_GAME', () => {
+  it('resets to a fresh game from a terminal state', () => {
+    const game = movingGame({
+      board: { ...createInitialUiState().game.board, a1: 'white' },
+      result: { type: 'win', winner: 'white', reason: 'White wins — Black has no legal moves' },
+    })
+    const state = stateWith({ game, selected: null, error: 'stale error' })
+
+    const next = gameReducer(state, { type: 'NEW_GAME' })
+
+    expect(next.game.result).toBeNull()
+    expect(next.game.phase).toBe('placing')
+    expect(next.game.piecesInHand).toEqual({
+      white: PIECES_PER_PLAYER,
+      black: PIECES_PER_PLAYER,
+    })
+    expect(next.selected).toBeNull()
+    expect(next.error).toBeNull()
+  })
+
+  it('resets mid-game state too, not only terminal states', () => {
+    const game = movingGame({ board: { ...createInitialUiState().game.board, a1: 'white' } })
+    const state = stateWith({ game, selected: 'a1', error: 'point x is occupied' })
+
+    const next = gameReducer(state, { type: 'NEW_GAME' })
+
+    expect(next.game.board.a1).toBeNull()
+    expect(next.selected).toBeNull()
+    expect(next.error).toBeNull()
   })
 })
