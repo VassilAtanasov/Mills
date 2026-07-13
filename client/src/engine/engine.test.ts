@@ -18,6 +18,9 @@ function stateWith(overrides: Partial<GameState>): GameState {
     currentPlayer: 'white',
     piecesInHand: { white: 9, black: 9 },
     pendingCapture: null,
+    movesWithoutProgress: 0,
+    positionCounts: {},
+    result: null,
     ...overrides,
   }
 }
@@ -385,5 +388,169 @@ describe('mill formed by a move', () => {
     expect(afterCapture.state.pendingCapture).toBeNull()
     expect(afterCapture.state.currentPlayer).toBe('black')
     expect(afterCapture.state.phase).toBe('moving')
+  })
+})
+
+describe('win by reduction below three pieces', () => {
+  it('declares the opponent the winner once a capture drops a player below three pieces', () => {
+    const state = movingState({
+      board: boardWith({
+        a1: 'white',
+        a4: 'white',
+        a7: 'white',
+        d1: 'white',
+        d5: 'black',
+        e3: 'black',
+        f2: 'black',
+      }),
+      currentPlayer: 'white',
+      pendingCapture: 'white',
+    })
+
+    const result = applyAction(state, { type: 'capture', point: 'd5' })
+    if (!result.ok) throw new Error('expected capture to succeed')
+    expect(result.state.board.d5).toBeNull()
+    expect(result.state.result).toEqual({
+      type: 'win',
+      winner: 'white',
+      reason: 'White wins — Black has fewer than three pieces',
+    })
+  })
+})
+
+describe('win by no legal moves', () => {
+  it('declares the mover the winner once the opponent is completely boxed in', () => {
+    // black's 4 pieces (a1, a7, g1, g7) each have both adjacency neighbors occupied by white
+    const state = movingState({
+      board: boardWith({
+        a1: 'black',
+        a7: 'black',
+        g1: 'black',
+        g7: 'black',
+        a4: 'white',
+        d1: 'white',
+        d7: 'white',
+        g4: 'white',
+        c3: 'white',
+      }),
+      currentPlayer: 'white',
+    })
+
+    const result = applyAction(state, { type: 'move', from: 'c3', to: 'c4' })
+    if (!result.ok) throw new Error('expected move to succeed')
+    expect(result.state.currentPlayer).toBe('black')
+    expect(getLegalActions(result.state)).toHaveLength(0)
+    expect(result.state.result).toEqual({
+      type: 'win',
+      winner: 'white',
+      reason: 'White wins — Black has no legal moves',
+    })
+  })
+})
+
+describe('terminal state immutability', () => {
+  it('rejects further actions and reports no legal actions once the game is over', () => {
+    const state = movingState({
+      board: boardWith({ a1: 'white', a4: 'white', a7: 'white' }),
+      result: { type: 'win', winner: 'white', reason: 'White wins — Black has no legal moves' },
+    })
+
+    expect(getLegalActions(state)).toEqual([])
+
+    const result = applyAction(state, { type: 'move', from: 'a1', to: 'd1' })
+    expect(result.ok).toBe(false)
+    if (result.ok) throw new Error('expected rejection')
+    expect(result.reason).toMatch(/game is over/)
+  })
+})
+
+describe('draw by the 50-move rule', () => {
+  it('declares a draw once 50 moves pass with no mill or capture', () => {
+    const state = movingState({
+      board: boardWith({ a1: 'white', b2: 'white', c3: 'white', g1: 'black', e5: 'black', f6: 'black' }),
+      currentPlayer: 'white',
+      movesWithoutProgress: 49,
+    })
+
+    const result = applyAction(state, { type: 'move', from: 'a1', to: 'a4' })
+    if (!result.ok) throw new Error('expected move to succeed')
+    expect(result.state.result).toEqual({
+      type: 'draw',
+      reason: 'Draw — 50 moves without a mill or capture',
+    })
+  })
+
+  it('does not trigger a draw before the 50th move', () => {
+    const state = movingState({
+      board: boardWith({ a1: 'white', b2: 'white', c3: 'white', g1: 'black', e5: 'black', f6: 'black' }),
+      currentPlayer: 'white',
+      movesWithoutProgress: 48,
+    })
+
+    const result = applyAction(state, { type: 'move', from: 'a1', to: 'a4' })
+    if (!result.ok) throw new Error('expected move to succeed')
+    expect(result.state.result).toBeNull()
+    expect(result.state.movesWithoutProgress).toBe(49)
+  })
+
+  it('resets the counter to zero when a mill is formed and captured', () => {
+    const state = movingState({
+      board: boardWith({
+        a4: 'white',
+        b4: 'white',
+        c5: 'white',
+        d1: 'white',
+        d2: 'black',
+        e3: 'black',
+      }),
+      currentPlayer: 'white',
+      movesWithoutProgress: 40,
+    })
+
+    const millMove = applyAction(state, { type: 'move', from: 'c5', to: 'c4' })
+    if (!millMove.ok) throw new Error('expected move to succeed')
+
+    const afterCapture = applyAction(millMove.state, { type: 'capture', point: 'd2' })
+    if (!afterCapture.ok) throw new Error('expected capture to succeed')
+    expect(afterCapture.state.movesWithoutProgress).toBe(0)
+  })
+})
+
+describe('draw by threefold repetition', () => {
+  it('declares a draw once the same position with the same player to move recurs three times', () => {
+    let state = movingState({
+      board: boardWith({
+        a1: 'white',
+        b2: 'white',
+        c3: 'white',
+        g1: 'black',
+        e5: 'black',
+        f6: 'black',
+      }),
+      currentPlayer: 'white',
+    })
+
+    const shuttle: { from: PointId; to: PointId }[] = [
+      { from: 'a1', to: 'a4' },
+      { from: 'g1', to: 'g4' },
+      { from: 'a4', to: 'a1' },
+      { from: 'g4', to: 'g1' },
+    ]
+
+    let halfMoves = 0
+    while (!state.result && halfMoves < 40) {
+      const move = shuttle[halfMoves % shuttle.length]
+      const result = applyAction(state, { type: 'move', ...move })
+      if (!result.ok) throw new Error(`unexpected rejection: ${result.reason}`)
+      state = result.state
+      halfMoves++
+    }
+
+    expect(state.result).not.toBeNull()
+    expect(state.result?.type).toBe('draw')
+    expect(state.result?.reason).toMatch(/position/i)
+
+    const rejected = applyAction(state, { type: 'move', from: 'b2', to: 'b4' })
+    expect(rejected.ok).toBe(false)
   })
 })
