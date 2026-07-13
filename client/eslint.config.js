@@ -42,6 +42,11 @@ export default tseslint.config(
               message:
                 'The rules engine must not depend on the AI module — the dependency is one-way, ai -> engine (ARCHITECTURE.md D-9).',
             },
+            {
+              group: ['**/audio/**', '**/src/audio/**'],
+              message:
+                'The rules engine must stay silent — sound is UI-layer-triggered only (ARCHITECTURE.md D-12).',
+            },
           ],
         },
       ],
@@ -61,6 +66,30 @@ export default tseslint.config(
             {
               group: ['**/components/**', '**/src/components/**'],
               message: 'The AI module must not depend on UI components (ARCHITECTURE.md D-9).',
+            },
+            {
+              group: ['**/audio/**', '**/src/audio/**'],
+              message: 'The AI module must stay silent — sound is UI-layer-triggered only (ARCHITECTURE.md D-12).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/audio/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: 'react', message: 'The audio module must stay framework-free (ARCHITECTURE.md D-12).' },
+            { name: 'react-dom', message: 'The audio module must stay framework-free (ARCHITECTURE.md D-12).' },
+          ],
+          patterns: [
+            {
+              group: ['**/components/**', '**/src/components/**'],
+              message: 'The audio module must not depend on UI components (ARCHITECTURE.md D-12).',
             },
           ],
         },
