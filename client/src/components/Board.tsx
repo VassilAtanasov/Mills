@@ -4,6 +4,7 @@ import type { GameState, PointId } from '../engine/types'
 import './Board.css'
 import { layoutFor, VIEWBOX_SIZE } from './boardLayout'
 import { Piece } from './Piece'
+import { useCaptureGhost } from './useCaptureGhost'
 
 interface BoardProps {
   readonly state: GameState
@@ -37,6 +38,7 @@ export function Board({
   onPointClick,
 }: BoardProps) {
   const isOver = state.result !== null
+  const [captureGhost, clearCaptureGhost] = useCaptureGhost(state.board)
 
   return (
     <svg
@@ -124,6 +126,11 @@ export function Board({
               <circle className="point-hit-area" cx={x} cy={y} r={26} />
               <circle className="point-marker" cx={x} cy={y} r={6} />
               {occupant ? <Piece player={occupant} cx={x} cy={y} /> : null}
+              {captureGhost?.point === point ? (
+                <g className="piece-ghost" onAnimationEnd={clearCaptureGhost}>
+                  <Piece player={captureGhost.player} cx={x} cy={y} />
+                </g>
+              ) : null}
             </g>
           )
         })}

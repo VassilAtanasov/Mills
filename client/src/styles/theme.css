@@ -42,9 +42,21 @@
   --radius-md: 10px;
   --radius-lg: 18px;
 
-  /* Motion (durations/easings; applied starting with the motion issue) */
+  /* Motion */
   --motion-fast: 150ms;
   --motion-base: 300ms;
   --motion-slow: 500ms;
   --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Single central override: shortens every animation/transition to effectively
+   nothing when the user prefers reduced motion, without changing final state. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
